@@ -68,8 +68,9 @@ body {
 /*******************************************/
 h1 {
   width: fit-content;
+  font-family: "Bangers", cursive;
   margin: 100px auto;
-  font-size: 4.5rem;
+  font-size: 6.5rem;
 }
 
 h2, h3 {
