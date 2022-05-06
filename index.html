@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="description" content="Web app for password manager">
+    	<meta name="keywords" content="password, local">
+
+		<title>Passworded</title>
+		<!-- viewport-->
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- external fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"> 
+		<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
+
+
+
+
+		<!-- external CSS styles -->
+		<link rel="stylesheet" href="assets/css/reset.css">
+		<link rel="stylesheet" href="assets/css/style.css">
+	</head>
+	<body>
+		<header>
+			<h1>Password Manager</h1>
+		</header>
+		<div class="cf strip" >
+			<div class="col-1-4 in-col">
+				<h2>Generate new password</h2>
+				<ul>
+					<li>Webservice: <input class="text-input" type="text" id="inputId" placeholder="website/service"></li>
+					<li>Username: <input class="text-input" type="text" id="inputName" placeholder="Username"></li>
+					<li>Email: <input  class="text-input" type="text" id="inputEmail" placeholder="your.mail@mailbox.com"></li>
+					<li>Extra text information:</li>
+					<textarea type="text" id="inputInfo" placeholder="Use this only on tuesdays"></textarea>
+				</ul>
+				<div>
+					<ul>
+						<li ><input class="text-input" type="number" placeholder="16">Length</li>
+						<li class="clickable"><input type="checkbox">Include uppercase</li>
+						<li class="clickable"><input type="checkbox">Include numbers</li>
+						<li class="clickable"><input type="checkbox">Include special characters</li>
+					</ul> 
+					<button>Generate random password</button>				
+				</div>
+			</div>
+			<div class="col-1-4 in-col"> 
+				<h2>Get old password</h2>
+				<select id="selectOldPasswords">
+					<option>-- Please select a password --</option>
+				</select>
+				<p class="clickable"><input type="checkbox">Copy to clipboard</li></p>
+				<p class="clickable"><input type="checkbox">Show data on screen</li></p>
+				<p class="clickable"><input type="checkbox">Show password on screen</li></p>
+				<button>Get password</button>
+			</div>
+			<div class="col-1-4" id="passwordDump">
+				<h3>Your current passwords</h3>
+			</div>
+			<div class="col-1-4 in-col">
+				<h2>Clear passwords</h2>
+				<button>Clear</button>
+				<button class="danger">Clear all passwords locally stored</button>	
+			</div>
+		</div>
+		<script type="text/javascript" src="assets/js/main.js"></script>
+	</body>
+</html>
