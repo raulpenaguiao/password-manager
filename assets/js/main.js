@@ -15,7 +15,7 @@ class Password{
     get data(){
         try{
             let p = askSecretPassphrase();
-            return [CryptoJS.Rabbit.decrypt(this._encripted_email, p), CryptoJS.Rabbit.decrypt(this._encripted_user, p), CryptoJS.Rabbit.decrypt(this._encripted_password, p), CryptoJS.Rabbit.decrypt(this._encripted_text, p)];
+            return [this._encripted_email, this._encripted_user, this._encripted_password, this._encripted_text].map(item => CryptoJS.Rabbit.decrypt(item, p).toString(CryptoJS.enc.Utf8));
         } catch(err){
             console.log(err);
             return "There was an error";
@@ -23,30 +23,33 @@ class Password{
     }
 
     savePasswordToLocalstorage(){//Currently does not escape / characters
-        if(localStorage.getItem(this.name) === null){
-            localStorage.setItem(this.name, this.data);
+        if(localStorage.getItem("pass" + this.name) === null){
+            localStorage.setItem("pass" + this.name, JSON.stringify(this.data));
         } else{
             throw new Error("Password already exists");
         }
     }
+
     addPasswordToDOM(){
         passwords.unshift(this);
+        console.log("Passwords updated with ", this.name)
         selectDropdownHTML.innerHTML += `<option>${this.name}</option>`;
     }
 
 }
 
-function askSecretPassphrase(){//Let's make it more fancy latter
+function askSecretPassphrase(){//TODO Let's make it more fancy latter
+    console.log("Passphrase asked" )
     return "secret password";
 }
 
-function savePasswordToLocalstorage(password){//Currently does not escape / characters
+/* function savePasswordToLocalstorage(password){//Currently does not escape / characters
     if(localStorage.getItem(password.name) === null){
         localStorage.setItem(password.name, password.data);
     } else{
         throw new Error("Password already exists");
     }
-}
+} */
 
 function createPassword(name, arr){
     try{
@@ -75,3 +78,4 @@ for(pass in localStorage){
 passwords.forEach(item =>{
     selectDropdownHTML.innerHTML += `<option>${item.name}</option>`;
 })
+
