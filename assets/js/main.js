@@ -64,6 +64,15 @@ function createPassword(name, arr){
     }
 }
 
+function addNewPassword(password){//TODO
+    let l = 0;
+    return l;
+}
+
+function removePassword(name){//TODO
+    return 1;
+}
+
 let passwords = new Array();
 for(pass in localStorage){
     if(pass.substring(0,4) === "pass"){
