@@ -30,21 +30,21 @@
 			<div class="col-1-4 in-col">
 				<h2>Generate new password</h2>
 				<ul>
-					<li>Webservice: <input class="text-input" type="text" id="inputId" placeholder="website/service"></li>
-					<li>Username: <input class="text-input" type="text" id="inputName" placeholder="Username"></li>
+					<li>Webservice: <input class="text-input" type="text" id="inputName" placeholder="website/service"></li>
+					<li>Username: <input class="text-input" type="text" id="inputUser" placeholder="Username"></li>
 					<li>Email: <input  class="text-input" type="text" id="inputEmail" placeholder="your.mail@mailbox.com"></li>
 					<li>Extra text information:</li>
 					<textarea type="text" id="inputInfo" placeholder="Use this only on tuesdays"></textarea>
 				</ul>
 				<div>
 					<ul>
-						<li ><input class="text-input" type="number" placeholder="16">Length</li>
-						<li class="clickable"><input type="checkbox" disabled>Include uppercase</li>
-						<li class="clickable"><input type="checkbox" disabled>Include numbers</li>
-						<li class="clickable"><input type="checkbox" disabled>Include special characters</li>
+						<li ><input class="text-input" type="text" name="lengthPassword" maxlength="2"  min="0" max="9999" step="1" placeholder="16" pattern="[0-9]{4}" id="lengthPasswordGeneratedInput">Length</li>
+						<li class="clickable"><input type="checkbox" id="includeUpperCaseCheckbox" disabled>Include uppercase</li>
+						<li class="clickable"><input type="checkbox" id="includeNumbersCheckbox" disabled>Include numbers</li>
+						<li class="clickable"><input type="checkbox" id="includeSpecialCharactersCheckbox" disabled>Include special characters</li>
 					</ul> 
-					<button>Generate random password</button><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
-					<button>Introduce password in local database</button>
+					<button id="buttonPasswordGenerator">Generate random password</button><p class="text-input password-see" id="passwordSee">𓁻</p><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
+					<button id="passwordIntroduceDatabase">Introduce password in local database</button>
 				</div>
 			</div>
 			<div class="col-1-4 in-col"> 
@@ -62,11 +62,15 @@
 			</div>
 			<div class="col-1-4 in-col">
 				<h2>Clear passwords</h2>
-				<button>Clear</button>
+				<select id="selectOldPasswordsClear">
+					<option>-- Please select a password --</option>
+					<option>-- All --</option>
+				</select>
 				<button class="danger">Clear all passwords locally stored</button>	
 			</div>
 		</div>
 		<script type="text/javascript" src="assets/js/page.js"></script>
 		<script type="text/javascript" src="assets/js/main.js"></script>
+		<script type="text/javascript" src="assets/js/generator.js"></script>
 	</body>
 </html>

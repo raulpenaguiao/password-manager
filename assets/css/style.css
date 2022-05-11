@@ -131,6 +131,21 @@ input[type="checkbox"]:checked {
   visibility: hidden;
 }
 
+.password-see {
+  margin: 3px;
+  margin-top: -3px;
+  display: inline-block;
+  width: fit-content;
+  border: solid 2px black;
+  cursor: pointer;
+  background-color: antiquewhite;
+  height: 3rem;
+}
+
+.password-see:hover {
+  background-color: bisque;
+}
+
 /******************************************
 /* ADDITIONAL STYLES
 /*******************************************/

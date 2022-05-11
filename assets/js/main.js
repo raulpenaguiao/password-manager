@@ -2,11 +2,11 @@ selectDropdownHTML = document.querySelector("#selectOldPasswords");
 
 class Password{
     constructor(name, arr){
-        this._name = name;
-        this._encripted_email = arr[0];
-        this._encripted_user = arr[1];
-        this._encripted_password = arr[2];
-        this._encripted_text = arr[3];
+        this._name = name;//name is the name of the webservice
+        this._encripted_email = arr[0];//email is the e-mail given by the user
+        this._encripted_user = arr[1];//user is the username given by the user
+        this._encripted_password = arr[2];//pass
+        this._encripted_text = arr[3];//description
     }
     get name(){
         return this._name;
@@ -39,7 +39,11 @@ class Password{
 }
 
 function askSecretPassphrase(){//TODO Let's make it more fancy latter
-    console.log("Passphrase asked" )
+    let passCheck = false;
+    console.log("Passphrase asked")
+    if(passCheck){
+        throw new Error("Wrong passphrase");
+    }
     return "secret password";
 }
 
