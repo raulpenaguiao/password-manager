@@ -75,8 +75,17 @@ h1 {
 
 h2, h3 {
   text-align: center;
-  font-size: 3.4rem;
+  font-size: 4.4rem;
   margin-bottom: 25px;
+}
+
+h5 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.emph {
+  color: rgb(120, 60, 200);
 }
 
 textarea {
@@ -125,6 +134,7 @@ input[type="checkbox"]:checked {
   cursor: pointer;
   margin-top: 100px;
   margin-bottom: 40px;
+  width: 100%;
 }
 
 .hdn {
@@ -144,6 +154,88 @@ input[type="checkbox"]:checked {
 
 .password-see:hover {
   background-color: bisque;
+}
+
+
+/*
+Third quadrand
+*/
+
+.out {
+  float: right;
+  background-color: blanchedalmond;
+}
+
+.password {
+  display: block;
+  width: 100%;
+  background-color: rgb(150, 160, 50);
+}
+
+
+/*
+first visit
+*/
+
+.firstVisit {
+  position: absolute;
+  top:0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgb(180, 160, 50, 0.965);
+}
+
+.inp {
+  background-color: rgb(180, 160, 50, 0.5);
+  width: 70%;
+  margin: 300px auto;
+  min-height: 30rem;
+  border: 2px solid black;
+  padding: 30px;
+}
+
+.inputData {
+  margin-bottom: 5px;
+}
+
+
+.main {
+  font-size: 3.4rem;
+  height: 6rem;
+  padding: 0 20px;
+}
+
+.btnWide, .inputData  {
+  border-radius: 10px;
+  border: 0;
+  background-color: rgb(240, 230, 230);
+  cursor: pointer;
+}
+
+.inputData:hover,.btnWide:hover {
+  background-color: rgb(150, 170, 150);
+}
+
+.btnWide:active {
+  border: 5px ridge rgb(120, 140, 140);
+}
+
+.half-wide{
+  width: 50%;
+}
+
+.wide{
+  width: 100%;
+}
+
+
+/*
+Error box
+*/
+
+.error {
+  border: 3px solid red;
 }
 
 /******************************************

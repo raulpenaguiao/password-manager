@@ -30,44 +30,58 @@
 			<div class="col-1-4 in-col">
 				<h2>Generate new password</h2>
 				<ul>
-					<li>Webservice: <input class="text-input" type="text" id="inputName" placeholder="website/service"></li>
-					<li>Username: <input class="text-input" type="text" id="inputUser" placeholder="Username"></li>
-					<li>Email: <input  class="text-input" type="text" id="inputEmail" placeholder="your.mail@mailbox.com"></li>
+					<li>Webservice: <input class="text-input" autocomplete="off" type="text" id="inputName" placeholder="website/service"></li>
+					<li>Username: <input class="text-input" autocomplete="off" type="text" id="inputUser" placeholder="Username"></li>
+					<li>Email: <input  class="text-input" autocomplete="off" type="text" id="inputEmail" placeholder="your.mail@mailbox.com"></li>
 					<li>Extra text information:</li>
-					<textarea type="text" id="inputInfo" placeholder="Use this only on tuesdays"></textarea>
+					<textarea type="text" id="inputInfo" autocomplete="off" placeholder="Use this only on tuesdays"></textarea>
 				</ul>
 				<div>
 					<ul>
-						<li ><input class="text-input" type="text" name="lengthPassword" maxlength="2"  min="0" max="9999" step="1" placeholder="16" pattern="[0-9]{4}" id="lengthPasswordGeneratedInput">Length</li>
+						<li ><input class="text-input" type="text" autocomplete="off" name="lengthPassword" maxlength="2"  min="0" max="9999" step="1" placeholder="16" pattern="[0-9]{4}" id="lengthPasswordGeneratedInput">Length</li>
 						<li class="clickable"><input type="checkbox" id="includeUpperCaseCheckbox" disabled>Include uppercase</li>
 						<li class="clickable"><input type="checkbox" id="includeNumbersCheckbox" disabled>Include numbers</li>
 						<li class="clickable"><input type="checkbox" id="includeSpecialCharactersCheckbox" disabled>Include special characters</li>
 					</ul> 
-					<button id="buttonPasswordGenerator">Generate random password</button><p class="text-input password-see" id="passwordSee">𓁻</p><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
-					<button id="passwordIntroduceDatabase">Introduce password in local database</button>
+					<button id="buttonPasswordGenerator" class="btnWide half-wide">Generate random password</button><p class="text-input password-see" id="passwordSee">𓁻</p><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
+					<button id="passwordIntroduceDatabase" class="btnWide wide">Introduce password in local database</button>
 				</div>
 			</div>
 			<div class="col-1-4 in-col"> 
 				<h2>Access database</h2>
 				<select id="selectOldPasswords">
-					<option>-- Please select a password --</option>
 				</select>
-				<p class="clickable"><input type="checkbox" disabled>Copy password to clipboard</li></p>
-				<p class="clickable"><input type="checkbox" disabled>Show data on screen</li></p>
-				<p class="clickable"><input type="checkbox" disabled>Show password on screen</li></p>
-				<button>Get password</button>
+				<p class="clickable"><input type="checkbox" id="toClipboardPassword" disabled>Copy password to clipboard</li></p>
+				<p class="clickable"><input type="checkbox" id="onScreenData" disabled>Show data on screen</li></p>
+				<p class="clickable"><input type="checkbox" id="onScreenPassword" disabled>Show password on screen</li></p>
+				<button id="passwordGetter" class="btnWide wide">Get password</button>
 			</div>
-			<div class="col-1-4" id="passwordDump">
-				<h3>Your current passwords</h3>
+			<div class="col-1-4">
+				<div id="passwordDump"></div>
 			</div>
 			<div class="col-1-4 in-col">
 				<h2>Clear passwords</h2>
 				<select id="selectOldPasswordsClear">
-					<option>-- Please select a password --</option>
-					<option>-- All --</option>
 				</select>
-				<button class="danger">Clear all passwords locally stored</button>	
+				<button class="danger" id="clearPasswordButton">Clear password locally stored</button>
+				<button class="danger hdn" id="deleteButton">Confirm</button>
 			</div>
+		</div>
+		<div id="firstVisit" class="firstVisit"><!--This part is to set the passphrase for the first time-->
+			<h1>Welcome to your <span class="emph">Passworded</span> manager</h1>
+			<section class="inp">
+				<h3>First, create a passphrase.</h3>
+				<h5>Ideally, this is the only password that you will be remembering. Make it strong.</h5>
+				<input id="passphraseCreatorInput" autocomplete="off" class="wide main inputData" placeholder="CorrectHourseBatteryStaple">
+				<button id="passphraseCreatorButton" class="btnWide main wide">Create passphrase</button>
+			</section>
+		</div>
+		<div id="password-ask" class="firstVisit hdn"><!--This part is to ask for the passphrase -->
+			<section class="inp">
+				<h3>What is your passphrase?</h3>
+				<input id="passphraseCheckerInput" autocomplete="off" class="wide main inputData" placeholder="CorrectHourseBatteryStaple">
+				<button id="passphraseCheckerButton" class="btnWide main wide">Check passphrase</button>
+			</section>
 		</div>
 		<script type="text/javascript" src="assets/js/page.js"></script>
 		<script type="text/javascript" src="assets/js/main.js"></script>
