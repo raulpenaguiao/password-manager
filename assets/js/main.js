@@ -3,165 +3,511 @@ const deleteDropdownHTML = document.querySelector("#selectOldPasswordsClear");
 const revealPasswordHTML = document.querySelector("#passwordDump");
 const firstVisitHTML = document.querySelector("#firstVisit");
 
-
-
 /*First visit elements*/
 const passphraseCreatorInputHTML = document.querySelector("#passphraseCreatorInput");
 const passphraseCreatorButtonHTML = document.querySelector("#passphraseCreatorButton");
 
-class Password{
-    constructor(name, arr){
-        this._name = name;//name is the name of the webservice
-        this._encripted_email = arr[0];//email is the e-mail given by the user ENCRYPTED
-        this._encripted_user = arr[1];//user is the username given by the user ENCRYPTED
-        this._encripted_password = arr[2];//pass ENCRYPTED
-        this._encripted_text = arr[3];//description ENCRYPTED
+// Store current passphrase in session (cleared on page close)
+let sessionPassphrase = null;
+const PASSPHRASE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+let passphraseTimeout = null;
+
+class Password {
+    constructor(name, encryptedData) {
+        this._name = name;
+        this._encrypted_email = encryptedData[0];
+        this._encrypted_user = encryptedData[1];
+        this._encrypted_password = encryptedData[2];
+        this._encrypted_text = encryptedData[3];
     }
-    get name(){
+
+    get name() {
         return this._name;
     }
 
-    get encrypted_data(){
-        return [this._encripted_email, this._encripted_user, this._encripted_password, this._encripted_text];
+    get encrypted_data() {
+        return [this._encrypted_email, this._encrypted_user, this._encrypted_password, this._encrypted_text];
     }
 
-    get data(){
-        try{
-            let p = askSecretPassphrase();
-            return [this._encripted_email, this._encripted_user, this._encripted_password, this._encripted_text].map(item => CryptoJS.Rabbit.decrypt(item, p).toString(CryptoJS.enc.Utf8));
-        } catch(err){
-            console.log(err);
-            return "There was an error";
-            
+    async data() {
+        try {
+            const passphrase = await getOrAskPassphrase();
+
+            const decrypted = await Promise.all([
+                decryptData(this._encrypted_email, passphrase),
+                decryptData(this._encrypted_user, passphrase),
+                decryptData(this._encrypted_password, passphrase),
+                decryptData(this._encrypted_text, passphrase)
+            ]);
+
+            return decrypted;
+        } catch (err) {
+            console.error('Error decrypting password data:', err);
+            throw new Error('Failed to decrypt password: ' + err.message);
         }
     }
 
-    savePasswordToLocalstorage(){//Currently does not escape / characters
-        if(localStorage.getItem("pass" + this.name) === null){
+    async savePasswordToLocalstorage() {
+        if (localStorage.getItem("pass" + this.name) === null) {
             localStorage.setItem("pass" + this.name, JSON.stringify(this.encrypted_data));
-        } else{
+        } else {
             throw new Error("Password already exists");
         }
     }
-/*
-    addPasswordToDOM(){
-        passwords.unshift(this);
-        console.log("Passwords updated with ", this.name)
-        selectDropdownHTML.innerHTML += `<option>${this.name}</option>`;
-    }*/
-
 }
 
-function askSecretPassphrase(){//TODO Let's make it more fancy latter
-    //Ask for the password
-    let pass = "secret password";//Right now there is no mechanism to ask for the password
-    console.log("Passphrase asked");
-    //Now we check if the value in localStorage matches this password
-    let passCheck = (CryptoJS.Rabbit.decrypt(JSON.parse(localStorage["Checker"]), pass).toString(CryptoJS.enc.Utf8) === "Passworded");
-    if(!passCheck){
-        throw new Error("Wrong passphrase");
+/**
+ * Gets passphrase from session or asks user
+ * Implements session timeout for security
+ */
+async function getOrAskPassphrase() {
+    // Clear expired session
+    if (passphraseTimeout && Date.now() > passphraseTimeout) {
+        clearSessionPassphrase();
     }
-    return pass;
+
+    // Return cached passphrase if available
+    if (sessionPassphrase) {
+        return sessionPassphrase;
+    }
+
+    // Ask for passphrase
+    return await askSecretPassphrase();
 }
 
-/* function savePasswordToLocalstorage(password){//Currently does not escape / characters
-    if(localStorage.getItem(password.name) === null){
-        localStorage.setItem(password.name, password.data);
-    } else{
-        throw new Error("Password already exists");
+/**
+ * Clears the session passphrase from memory
+ */
+function clearSessionPassphrase() {
+    sessionPassphrase = null;
+    passphraseTimeout = null;
+    console.log('Session passphrase cleared');
+}
+
+/**
+ * Prompts user for passphrase with retry logic
+ */
+async function askSecretPassphrase() {
+    let attempts = 0;
+    const maxAttempts = 3;
+    let passphrase = null;
+
+    while (attempts < maxAttempts) {
+        passphrase = prompt("Please enter your passphrase:");
+
+        if (passphrase === null) {
+            throw new Error("Passphrase cancelled by user");
+        }
+
+        if (passphrase === "") {
+            alert("Passphrase cannot be empty");
+            attempts++;
+            continue;
+        }
+
+        // Verify passphrase
+        try {
+            const checker = localStorage.getItem("Checker");
+            if (!checker) {
+                throw new Error("No passphrase set up. Please set up a passphrase first.");
+            }
+
+            const isCorrect = await verifyPassphrase(passphrase, checker);
+
+            if (!isCorrect) {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    alert("Wrong passphrase. You have " + (maxAttempts - attempts) + " attempts remaining.");
+                } else {
+                    throw new Error("Too many failed attempts");
+                }
+            } else {
+                // Cache passphrase for this session
+                sessionPassphrase = passphrase;
+                passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
+
+                // Auto-clear after timeout
+                setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
+
+                return passphrase;
+            }
+        } catch (err) {
+            attempts++;
+            if (attempts < maxAttempts) {
+                alert("Wrong passphrase. You have " + (maxAttempts - attempts) + " attempts remaining.");
+            } else {
+                throw new Error("Too many failed attempts");
+            }
+        }
     }
-} */
 
+    throw new Error("Too many failed attempts");
+}
 
+/**
+ * Creates a new password entry
+ */
+async function createPassword(name, arr) {
+    try {
+        const passphrase = await getOrAskPassphrase();
 
-/*
-Creates a new password object
-array has [email, username, password, text] UNENCRIPTED
-Also adds password to DOM, passwords list and dropdown lists
-*/
-function createPassword(name, arr){
-    try{
-        let p = askSecretPassphrase();
-        let array = arr.map(item => CryptoJS.Rabbit.encrypt(item, p));
-        let password = new Password(name, array);
-        password.savePasswordToLocalstorage();
-        passwords = updatePasswordsAndDOM();
+        // Encrypt all fields
+        const encrypted = await Promise.all([
+            encryptData(arr[0], passphrase),  // email
+            encryptData(arr[1], passphrase),  // user
+            encryptData(arr[2], passphrase),  // password
+            encryptData(arr[3], passphrase)   // description
+        ]);
+
+        const password = new Password(name, encrypted);
+        await password.savePasswordToLocalstorage();
+
+        passwords = await updatePasswordsAndDOM();
         return password;
-    } catch(err){
-        console.log(err);
-        return "There was an error";
+    } catch (err) {
+        console.error('Error creating password:', err);
+        throw err;
     }
 }
 
-/*
-Also removes password from DOM, passwords list and dropdown lists
-*/
-function removePassword(name){
-    if(name === "-- All --"){//This does not YET ask for a new passphrase
-        for(key in localStorage){
-            if(key.substring(0,4) === "pass"){
+/**
+ * Removes a password entry
+ */
+async function removePassword(name) {
+    if (name === "-- All --") {
+        for (let key in localStorage) {
+            if (key.substring(0, 4) === "pass") {
                 localStorage.removeItem(key);
             }
         }
         localStorage.removeItem("Checker");
         firstVisitHTML.classList.remove("hdn");
-    } else{
-        for(key in localStorage){
-            if(key === "pass" + name){
+    } else {
+        for (let key in localStorage) {
+            if (key === "pass" + name) {
                 localStorage.removeItem(key);
-                passwords = updatePasswordsAndDOM();
+                passwords = await updatePasswordsAndDOM();
                 return name;
             }
         }
     }
-    throw "No password on the database with that name";
+    throw new Error("No password in database with that name");
 }
 
+/**
+ * Updates password list and DOM dropdowns
+ */
+async function updatePasswordsAndDOM() {
+    let passwords = [];
 
-/*
-Reads all existing passwords at start up
-Stores all existing passwords in an array called "passwords"
-*/
-function updatePasswordsAndDOM(){
-    let passwords = new Array();
-    for(pass in localStorage){
-        if(pass.substring(0,4) === "pass"){
-            let password = new Password(pass.substring(4), JSON.parse(localStorage[pass]))
-            passwords.push(password);
+    for (let key in localStorage) {
+        if (key.substring(0, 4) === "pass") {
+            try {
+                const name = key.substring(4);
+                const encrypted = JSON.parse(localStorage[key]);
+                const password = new Password(name, encrypted);
+                passwords.push(password);
+            } catch (err) {
+                console.error('Error parsing password entry:', err);
+            }
         }
     }
+
     passwords.sort((a, b) => a.name < b.name ? -1 : 1);
-    //Put all existing passwords at start up in the DOM
-    
-    selectDropdownHTML.innerHTML = "<option>-- Please select a password --</option>"
-    deleteDropdownHTML.innerHTML = "<option>-- Please select a password --</option>"
-    passwords.forEach(item =>{
-        selectDropdownHTML.innerHTML += `<option>${item.name}</option>`;
-        deleteDropdownHTML.innerHTML += `<option>${item.name}</option>`;
-    })
-    deleteDropdownHTML.innerHTML += `<option>-- All --</option>`;
+
+    // Update dropdowns
+    selectDropdownHTML.innerHTML = "<option>-- Please select a password --</option>";
+    deleteDropdownHTML.innerHTML = "<option>-- Please select a password --</option>";
+
+    passwords.forEach(item => {
+        const option1 = document.createElement('option');
+        option1.textContent = item.name;
+        selectDropdownHTML.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.textContent = item.name;
+        deleteDropdownHTML.appendChild(option2);
+    });
+
+    deleteDropdownHTML.appendChild(document.createElement('option')).textContent = "-- All --";
+
+    // Display recent passwords if function exists
+    if (typeof displayRecentPasswords !== 'undefined') {
+        displayRecentPasswords();
+    }
+
     return passwords;
 }
-passwords = updatePasswordsAndDOM();
 
-/*
-This section is for the first time this app runs on someone's computer, or when ALL passwords are cleared
-*/
-function createPassphrase(){
-    //Create passphrase
-    let pass = passphraseCreatorInputHTML.value; 
-    pass ="secret password";
-    //Right now there is no method to create a password
-    localStorage.setItem('Checker', JSON.stringify(CryptoJS.Rabbit.encrypt("Passworded", pass)));
-    firstVisitHTML.classList.add("hdn");
+let passwords = [];
+
+/**
+ * Sets up a new passphrase on first visit
+ */
+async function createPassphrase() {
+    let passphrase = passphraseCreatorInputHTML.value;
+
+    // Validate passphrase
+    if (!passphrase || passphrase.length < 5) {
+        alert("Passphrase must be at least 5 characters long");
+        return;
+    }
+
+    // Warn if passphrase is weak
+    if (passphrase.length < 12) {
+        const isConfirmed = confirm("Your passphrase is relatively short. Are you sure you want to use it?\n\nWe recommend at least 12 characters for better security.");
+        if (!isConfirmed) {
+            return;
+        }
+    }
+
+    // Confirm passphrase
+    let confirmPass = prompt("Please confirm your passphrase:");
+    if (confirmPass === null) {
+        alert("Passphrase creation cancelled");
+        return;
+    }
+
+    if (confirmPass !== passphrase) {
+        alert("Passphrases do not match. Please try again.");
+        passphraseCreatorInputHTML.value = "";
+        return;
+    }
+
+    try {
+        // Generate checker value
+        const checker = await generatePassphraseChecker(passphrase);
+        localStorage.setItem('Checker', checker);
+
+        firstVisitHTML.classList.add("hdn");
+        passphraseCreatorInputHTML.value = "";
+
+        // Cache passphrase for session
+        sessionPassphrase = passphrase;
+        passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
+        setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
+
+        alert("Passphrase created successfully!");
+    } catch (err) {
+        alert("Error creating passphrase: " + err.message);
+    }
 }
 
-if('Checker' in localStorage){
-    firstVisitHTML.classList.add("hdn");
+/**
+ * Changes the master passphrase
+ */
+async function changePassphrase() {
+    try {
+        // Verify current passphrase
+        const currentPass = await getOrAskPassphrase();
+
+        // Get new passphrase
+        let newPass = prompt("Enter your new passphrase:");
+        if (newPass === null) {
+            alert("Passphrase change cancelled");
+            return;
+        }
+
+        if (!newPass || newPass.length < 5) {
+            alert("New passphrase must be at least 5 characters long");
+            return;
+        }
+
+        // Confirm new passphrase
+        let confirmNewPass = prompt("Confirm your new passphrase:");
+        if (confirmNewPass === null) {
+            alert("Passphrase change cancelled");
+            return;
+        }
+
+        if (confirmNewPass !== newPass) {
+            alert("New passphrases do not match. Please try again.");
+            return;
+        }
+
+        // Re-encrypt all passwords with new passphrase
+        let allPasswords = [];
+        for (let key in localStorage) {
+            if (key.substring(0, 4) === "pass") {
+                const serviceName = key.substring(4);
+                const encryptedData = JSON.parse(localStorage[key]);
+                const password = new Password(serviceName, encryptedData);
+
+                // Get decrypted data
+                const decrypted = await Promise.all([
+                    decryptData(password._encrypted_email, currentPass),
+                    decryptData(password._encrypted_user, currentPass),
+                    decryptData(password._encrypted_password, currentPass),
+                    decryptData(password._encrypted_text, currentPass)
+                ]);
+
+                // Re-encrypt with new passphrase
+                const reEncrypted = await Promise.all([
+                    encryptData(decrypted[0], newPass),
+                    encryptData(decrypted[1], newPass),
+                    encryptData(decrypted[2], newPass),
+                    encryptData(decrypted[3], newPass)
+                ]);
+
+                allPasswords.push({ serviceName, data: reEncrypted });
+            }
+        }
+
+        // Clear old encrypted passwords
+        for (let key in localStorage) {
+            if (key.substring(0, 4) === "pass") {
+                localStorage.removeItem(key);
+            }
+        }
+
+        // Save re-encrypted passwords
+        for (let pwd of allPasswords) {
+            localStorage.setItem("pass" + pwd.serviceName, JSON.stringify(pwd.data));
+        }
+
+        // Update checker
+        const newChecker = await generatePassphraseChecker(newPass);
+        localStorage.setItem('Checker', newChecker);
+
+        // Update session
+        clearSessionPassphrase();
+        sessionPassphrase = newPass;
+        passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
+        setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
+
+        alert("Passphrase changed successfully!");
+        passwords = await updatePasswordsAndDOM();
+    } catch (err) {
+        alert("Error changing passphrase: " + err.message);
+        console.error(err);
+    }
 }
 
-passphraseCreatorButtonHTML.addEventListener('click', createPassphrase)
+/**
+ * Exports passwords to encrypted file
+ */
+async function exportPasswords() {
+    if (!confirm("Export all passwords to an encrypted file?\n\nThe file will be encrypted and can only be imported with the correct passphrase.")) {
+        return;
+    }
 
+    try {
+        const currentPass = await getOrAskPassphrase();
 
+        // Collect all passwords
+        let passwordsToExport = {};
+        for (let key in localStorage) {
+            if (key.substring(0, 4) === "pass") {
+                const serviceName = key.substring(4);
+                passwordsToExport[serviceName] = JSON.parse(localStorage[key]);
+            }
+        }
 
+        // Create export object
+        const exportData = {
+            version: "2.0",
+            exportDate: new Date().toISOString(),
+            passwordCount: Object.keys(passwordsToExport).length,
+            passwords: passwordsToExport
+        };
 
+        // Encrypt the export
+        const encryptedExport = await encryptData(JSON.stringify(exportData), currentPass);
+
+        // Create download file
+        const dataBlob = new Blob([encryptedExport], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'passworded-backup-' + new Date().toISOString().split('T')[0] + '.encrypted';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        alert("Passwords exported successfully!");
+    } catch (err) {
+        alert("Error exporting passwords: " + err.message);
+        console.error(err);
+    }
+}
+
+/**
+ * Imports passwords from encrypted file
+ */
+async function importPasswords() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.encrypted';
+
+    fileInput.addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function (event) {
+            try {
+                const encryptedData = event.target.result;
+
+                // Ask for passphrase
+                const passphrase = prompt("Enter your passphrase to import passwords:");
+                if (passphrase === null) {
+                    alert("Import cancelled");
+                    return;
+                }
+
+                // Decrypt the file
+                const decrypted = await decryptData(encryptedData, passphrase);
+                const importData = JSON.parse(decrypted);
+
+                // Validate
+                if (!importData.passwords) {
+                    throw new Error("Invalid import file format");
+                }
+
+                // Show confirmation
+                const confirmMsg = `Import ${importData.passwordCount} password(s) from ${new Date(importData.exportDate).toLocaleDateString()}?\n\nPasswords with the same name will be overwritten.`;
+                if (!confirm(confirmMsg)) {
+                    alert("Import cancelled");
+                    return;
+                }
+
+                // Import passwords
+                let importedCount = 0;
+                for (let serviceName in importData.passwords) {
+                    localStorage.setItem("pass" + serviceName, JSON.stringify(importData.passwords[serviceName]));
+                    importedCount++;
+                }
+
+                alert(`Successfully imported ${importedCount} password(s)!`);
+                passwords = await updatePasswordsAndDOM();
+            } catch (err) {
+                alert("Error importing passwords: " + err.message);
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    fileInput.click();
+}
+
+// Initialize
+async function init() {
+    try {
+        if ('Checker' in localStorage) {
+            firstVisitHTML.classList.add("hdn");
+        }
+        passwords = await updatePasswordsAndDOM();
+    } catch (err) {
+        console.error('Initialization error:', err);
+    }
+}
+
+passphraseCreatorButtonHTML.addEventListener('click', createPassphrase);
+
+// Run initialization
+document.addEventListener('DOMContentLoaded', init);
+
+// Clear passphrase on page unload
+window.addEventListener('beforeunload', clearSessionPassphrase);

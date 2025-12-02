@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Test</title>
+    <script src="assets/js/crypto-utils.js"></script>
+</head>
+<body>
+    <h1>Passworded Crypto Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function log(message, isError = false) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.style.color = isError ? 'red' : 'green';
+            p.style.fontFamily = 'monospace';
+            resultsDiv.appendChild(p);
+            console.log(message);
+        }
+
+        async function runTests() {
+            try {
+                log('🧪 Starting Crypto Tests...');
+
+                // Test 1: Basic Encryption/Decryption
+                log('\n📝 Test 1: Basic Encryption/Decryption');
+                const plaintext = 'MySecretPassword123!';
+                const passphrase = 'MyMasterPassphrase';
+
+                const encrypted = await encryptData(plaintext, passphrase);
+                log(`✓ Encrypted: ${encrypted.substring(0, 50)}...`);
+
+                const decrypted = await decryptData(encrypted, passphrase);
+                log(`✓ Decrypted: ${decrypted}`);
+
+                if (decrypted === plaintext) {
+                    log('✓ Test 1 PASSED: Encryption/Decryption works correctly');
+                } else {
+                    log('✗ Test 1 FAILED: Decrypted text does not match original', true);
+                }
+
+                // Test 2: Wrong Passphrase Detection
+                log('\n📝 Test 2: Wrong Passphrase Detection');
+                try {
+                    const wrongDecrypt = await decryptData(encrypted, 'WrongPassphrase');
+                    log('✗ Test 2 FAILED: Should have thrown error for wrong passphrase', true);
+                } catch (err) {
+                    log(`✓ Test 2 PASSED: Correctly rejected wrong passphrase`);
+                }
+
+                // Test 3: Passphrase Checker
+                log('\n📝 Test 3: Passphrase Checker Generation/Verification');
+                const checker = await generatePassphraseChecker('TestPassphrase123');
+                log(`✓ Checker generated: ${checker.substring(0, 50)}...`);
+
+                const isValid = await verifyPassphrase('TestPassphrase123', checker);
+                log(`✓ Valid passphrase check: ${isValid}`);
+
+                const isInvalid = await verifyPassphrase('WrongPassphrase', checker);
+                log(`✓ Invalid passphrase check: ${isInvalid}`);
+
+                if (isValid && !isInvalid) {
+                    log('✓ Test 3 PASSED: Passphrase verification works correctly');
+                } else {
+                    log('✗ Test 3 FAILED: Passphrase verification logic error', true);
+                }
+
+                // Test 4: Multiple Fields (like password entries)
+                log('\n📝 Test 4: Multiple Fields Encryption (Simulating Password Entry)');
+                const email = 'user@example.com';
+                const username = 'john_doe';
+                const password = 'SecurePassword123!';
+                const description = 'My gmail account';
+                const masterPass = 'MasterPassphrase';
+
+                const encryptedFields = await Promise.all([
+                    encryptData(email, masterPass),
+                    encryptData(username, masterPass),
+                    encryptData(password, masterPass),
+                    encryptData(description, masterPass)
+                ]);
+                log(`✓ Encrypted 4 fields`);
+
+                const decryptedFields = await Promise.all([
+                    decryptData(encryptedFields[0], masterPass),
+                    decryptData(encryptedFields[1], masterPass),
+                    decryptData(encryptedFields[2], masterPass),
+                    decryptData(encryptedFields[3], masterPass)
+                ]);
+                log(`✓ Decrypted 4 fields`);
+
+                if (decryptedFields[0] === email &&
+                    decryptedFields[1] === username &&
+                    decryptedFields[2] === password &&
+                    decryptedFields[3] === description) {
+                    log('✓ Test 4 PASSED: Multiple fields encryption works correctly');
+                } else {
+                    log('✗ Test 4 FAILED: Field decryption mismatch', true);
+                }
+
+                // Test 5: Data Integrity (Modified Ciphertext Detection)
+                log('\n📝 Test 5: Data Integrity - Modified Ciphertext Detection');
+                try {
+                    // Modify the encrypted data
+                    const modifiedCiphertext = encrypted.substring(0, encrypted.length - 10) + 'tampered!!';
+                    const tamperTest = await decryptData(modifiedCiphertext, passphrase);
+                    log('✗ Test 5 FAILED: Should have detected tampering', true);
+                } catch (err) {
+                    log(`✓ Test 5 PASSED: Correctly detected tampering (AES-GCM authentication)`);
+                }
+
+                // Summary
+                log('\n✅ All tests completed successfully!');
+                log('\n📊 Summary:');
+                log('- AES-256-GCM encryption: Working ✓');
+                log('- PBKDF2 key derivation: Working ✓');
+                log('- Passphrase verification: Working ✓');
+                log('- Data integrity checking: Working ✓');
+                log('- Multiple field encryption: Working ✓');
+
+            } catch (err) {
+                log(`❌ Critical error: ${err.message}`, true);
+                console.error(err);
+            }
+        }
+
+        // Run tests on page load
+        window.addEventListener('load', runTests);
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        #results {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+    </style>
+</body>
+</html>

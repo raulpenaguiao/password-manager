@@ -10,6 +10,32 @@ Index
  -- nav list
  -- columns
  */
+
+/* CSS Variables for Light/Dark Mode */
+:root {
+  --bg-gradient: linear-gradient(to right, rgb(150, 160, 50), rgb(70, 100, 120));
+  --bg-primary: seashell;
+  --text-primary: #000;
+  --text-secondary: #666;
+  --border-color: rgb(40, 30, 20);
+  --focus-color: rgb(120, 60, 200);
+  --button-bg: rgb(240, 230, 230);
+  --button-hover: rgb(150, 170, 150);
+  --input-border: #ddd;
+}
+
+html.dark-mode {
+  --bg-gradient: linear-gradient(to right, #1a1a1a, #2d2d2d) !important;
+  --bg-primary: #2a2a2a !important;
+  --text-primary: #e0e0e0 !important;
+  --text-secondary: #999 !important;
+  --border-color: #444 !important;
+  --focus-color: #bb86fc !important;
+  --button-bg: #3a3a3a !important;
+  --button-hover: #4a4a4a !important;
+  --input-border: #555 !important;
+}
+
 /* Box Model Hack */
 * {
   box-sizing: border-box;
@@ -53,14 +79,17 @@ html {
 
 body {
   font-family: "Source Sans Pro", Arial, Helvetica, sans-serif;
-  background: linear-gradient(to right, rgb(150, 160, 50), rgb(70, 100, 120));
+  background: var(--bg-gradient);
   padding-bottom: 200px;
+  color: var(--text-primary);
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 .strip {
   width: 100%;
-  background-color: seashell;
+  background-color: var(--bg-primary);
   height: 600px;
+  color: var(--text-primary);
 }
 
 /******************************************
@@ -105,14 +134,46 @@ header {
   float: left;
   width: 25%;
   padding: 20px;
-  border-right: 2px solid rgb(40, 30, 20);
+  border-right: 2px solid var(--border-color);
   height: 100%;
   line-height: 3rem;
   font-size: 2rem;
+  color: var(--text-primary);
 }
 
 input[type="checkbox"]:checked {
   background-color: salmon;
+}
+
+input[type="text"], input[type="password"], select, textarea {
+  padding: 5px;
+  font-size: 1.6rem;
+  border: 2px solid var(--input-border);
+  border-radius: 5px;
+  font-family: "Source Sans Pro", Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+#inputEmail {
+  padding: 0;
+}
+
+input[type="text"]::placeholder, input[type="password"]::placeholder {
+  color: var(--text-secondary);
+}
+
+input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+  outline: none;
+  border: 2px solid var(--focus-color);
+  box-shadow: 0 0 5px rgba(120, 60, 200, 0.3);
+}
+
+select {
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  width: 100%;
 }
 
 
@@ -164,12 +225,28 @@ Third quadrand
 .out {
   float: right;
   background-color: blanchedalmond;
+  padding: 5px 10px;
+  border-radius: 3px;
+  color: #000;
+}
+
+html.dark-mode .out {
+  background-color: #444;
+  color: #e0e0e0;
 }
 
 .password {
   display: block;
   width: 100%;
   background-color: rgb(150, 160, 50);
+  padding: 10px;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+html.dark-mode .password {
+  background-color: #3a3a3a;
+  color: #e0e0e0;
 }
 
 
@@ -183,16 +260,31 @@ first visit
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: rgb(180, 160, 50, 0.965);
+  background-color: rgba(180, 160, 50, 0.965);
+  transition: background-color 0.3s ease;
+}
+
+html.dark-mode .firstVisit {
+  background-color: rgba(42, 42, 42, 0.95);
 }
 
 .inp {
-  background-color: rgb(180, 160, 50, 0.5);
+  background-color: rgba(180, 160, 50, 0.95);
   width: 70%;
-  margin: 300px auto;
+  margin: 100px auto;
   min-height: 30rem;
-  border: 2px solid black;
-  padding: 30px;
+  border: 3px solid rgb(120, 60, 200);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.5s ease;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark-mode .inp {
+  background-color: rgba(42, 42, 42, 0.95);
+  border-color: #bb86fc;
 }
 
 .inputData {
@@ -209,16 +301,35 @@ first visit
 .btnWide, .inputData  {
   border-radius: 10px;
   border: 0;
-  background-color: rgb(240, 230, 230);
+  background-color: var(--button-bg);
   cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
 }
 
 .inputData:hover,.btnWide:hover {
-  background-color: rgb(150, 170, 150);
+  background-color: var(--button-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .btnWide:active {
   border: 5px ridge rgb(120, 140, 140);
+  transform: translateY(0);
+}
+
+.danger {
+  transition: all 0.2s ease;
+}
+
+.danger:hover {
+  background-color: darkred;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.danger:active {
+  transform: translateY(0);
 }
 
 .half-wide{
@@ -236,6 +347,69 @@ Error box
 
 .error {
   border: 3px solid red;
+}
+
+.success {
+  border: 2px solid green;
+  background-color: rgba(144, 238, 144, 0.2);
+}
+
+/* Utility classes */
+.mt-2 { margin-top: 20px; }
+.mb-2 { margin-bottom: 20px; }
+.mt-1 { margin-top: 10px; }
+.mb-1 { margin-bottom: 10px; }
+
+/* Text utilities */
+.text-center { text-align: center; }
+.text-small { font-size: 1.2rem; }
+.text-muted { color: #666; }
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideIn 0.3s ease;
+}
+
+/* Dark mode button styling */
+#darkModeToggle {
+  background-color: rgba(255,255,255,0.2) !important;
+  border: 2px solid #999 !important;
+  transition: all 0.3s ease !important;
+}
+
+html.dark-mode #darkModeToggle {
+  background-color: rgba(0,0,0,0.3) !important;
+  border: 2px solid #666 !important;
+}
+
+#darkModeToggle:hover {
+  background-color: rgba(255,255,255,0.3) !important;
+  transform: scale(1.1);
+}
+
+html.dark-mode #darkModeToggle:hover {
+  background-color: rgba(0,0,0,0.4) !important;
+}
+
+/* Dark mode danger button styling */
+html.dark-mode .danger {
+  background-color: #8b0000 !important;
+  color: #e0e0e0;
+}
+
+html.dark-mode .danger:hover {
+  background-color: #a00000 !important;
 }
 
 /******************************************

@@ -9,9 +9,11 @@ function generatePassword(len, specialCharactersIncluded, numbersIncluded, upper
     if(upperCaseIncluded) l += upperCaseCharacters;
     if(numbersIncluded) l += numbersCharacters;
     if(specialCharactersIncluded) l += specialCharactersCharacters;
-    let str = "", n=l.length;
+    let str = "", n = l.length;
+    let randomValues = new Uint32Array(len);
+    crypto.getRandomValues(randomValues);
     for(let i = 0; i < len; i++){
-        str += l[Math.floor(Math.random()*n)];
+        str += l[randomValues[i] % n];
     }
     return str;
 }

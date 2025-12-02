@@ -15,8 +15,8 @@
 		<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
 
 
-		<!--crypto stuff-->
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+		<!-- Secure encryption using native Web Crypto API -->
+		<script type="text/javascript" src="assets/js/crypto-utils.js"></script>
 
 		<!-- external CSS styles -->
 		<link rel="stylesheet" href="assets/css/reset.css">
@@ -25,6 +25,7 @@
 	<body>
 		<header>
 			<h1>Password Manager</h1>
+			<button id="darkModeToggle" style="position: absolute; top: 20px; right: 20px; padding: 10px 15px; font-size: 2rem; background-color: rgba(255,255,255,0.2); border: 2px solid #999; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">🌙</button>
 		</header>
 		<div class="cf strip" >
 			<div class="col-1-4 in-col">
@@ -39,32 +40,40 @@
 				<div>
 					<ul>
 						<li ><input class="text-input" type="text" autocomplete="off" name="lengthPassword" maxlength="2"  min="0" max="9999" step="1" placeholder="16" pattern="[0-9]{4}" id="lengthPasswordGeneratedInput">Length</li>
-						<li class="clickable"><input type="checkbox" id="includeUpperCaseCheckbox" disabled>Include uppercase</li>
-						<li class="clickable"><input type="checkbox" id="includeNumbersCheckbox" disabled>Include numbers</li>
-						<li class="clickable"><input type="checkbox" id="includeSpecialCharactersCheckbox" disabled>Include special characters</li>
+						<li class="clickable"><input type="checkbox" id="includeUpperCaseCheckbox">Include uppercase</li>
+						<li class="clickable"><input type="checkbox" id="includeNumbersCheckbox">Include numbers</li>
+						<li class="clickable"><input type="checkbox" id="includeSpecialCharactersCheckbox">Include special characters</li>
 					</ul> 
 					<button id="buttonPasswordGenerator" class="btnWide half-wide">Generate random password</button><p class="text-input password-see" id="passwordSee">𓁻</p><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
 					<button id="passwordIntroduceDatabase" class="btnWide wide">Introduce password in local database</button>
 				</div>
 			</div>
-			<div class="col-1-4 in-col"> 
+			<div class="col-1-4 in-col">
 				<h2>Access database</h2>
+				<p id="recentPasswordsContainer" style="display: none; margin-bottom: 15px;">
+					<strong style="font-size: 1.4rem;">Recently Used:</strong>
+					<div id="recentPasswordsList" style="margin-top: 5px;"></div>
+				</p>
+				<input type="text" id="passwordSearchInput" class="text-input" placeholder="Search passwords..." style="width: 100%; margin-bottom: 10px;">
 				<select id="selectOldPasswords">
 				</select>
-				<p class="clickable"><input type="checkbox" id="toClipboardPassword" disabled>Copy password to clipboard</li></p>
-				<p class="clickable"><input type="checkbox" id="onScreenData" disabled>Show data on screen</li></p>
-				<p class="clickable"><input type="checkbox" id="onScreenPassword" disabled>Show password on screen</li></p>
+				<p class="clickable"><input type="checkbox" id="toClipboardPassword">Copy password to clipboard</li></p>
+				<p class="clickable"><input type="checkbox" id="onScreenData">Show data on screen</li></p>
+				<p class="clickable"><input type="checkbox" id="onScreenPassword">Show password on screen</li></p>
 				<button id="passwordGetter" class="btnWide wide">Get password</button>
 			</div>
 			<div class="col-1-4">
 				<div id="passwordDump"></div>
 			</div>
 			<div class="col-1-4 in-col">
-				<h2>Clear passwords</h2>
+				<h2>Settings</h2>
+				<p><button class="btnWide wide" id="changePassphraseButton">Change Passphrase</button></p>
+				<p><button class="btnWide wide" id="exportButton">Export Passwords</button></p>
+				<p><button class="btnWide wide" id="importButton">Import Passwords</button></p>
+				<p style="margin-top: 30px;"><strong>Delete a password:</strong></p>
 				<select id="selectOldPasswordsClear">
 				</select>
-				<button class="danger" id="clearPasswordButton">Clear password locally stored</button>
-				<button class="danger hdn" id="deleteButton">Confirm</button>
+				<p><button class="danger" id="clearPasswordButton">Delete Password</button></p>
 			</div>
 		</div>
 		<div id="firstVisit" class="firstVisit"><!--This part is to set the passphrase for the first time-->

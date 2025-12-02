@@ -14,11 +14,59 @@ const HTMLincludeSpecialCharactersCheckbox = document.querySelector("#includeSpe
 const HTMLlengthPasswordGeneratedInput = document.querySelector("#lengthPasswordGeneratedInput");
 const HTMLpasswordGetter = document.querySelector("#passwordGetter");
 const HTMLselectDropdown = document.querySelector("#selectOldPasswords");
+const HTMLpasswordSearchInput = document.querySelector("#passwordSearchInput");
 
 const HTMLonScreenPassword = document.querySelector("#onScreenPassword");
 const HTMLonScreenData = document.querySelector("#onScreenData");
 const HTMLtoClipboardPassword = document.querySelector("#toClipboardPassword");
 const HTMLpasswordDump = document.querySelector("#passwordDump");
+
+// Password strength indicator elements
+let passwordStrengthMeter = null;
+let passwordStrengthText = null;
+
+// Recent passwords tracking
+let recentPasswords = [];
+const MAX_RECENT = 5;
+
+/*
+Dark mode toggle
+*/
+const HTMLdarkModeToggle = document.querySelector("#darkModeToggle");
+const htmlElement = document.documentElement;
+
+// Check if dark mode preference is saved
+function loadDarkModePreference(){
+    const savedMode = localStorage.getItem('darkMode');
+    if(savedMode === 'enabled'){
+        enableDarkMode();
+    }
+}
+
+function enableDarkMode(){
+    htmlElement.classList.add('dark-mode');
+    HTMLdarkModeToggle.textContent = '☀️';
+    localStorage.setItem('darkMode', 'enabled');
+    console.log('Dark mode enabled');
+}
+
+function disableDarkMode(){
+    htmlElement.classList.remove('dark-mode');
+    HTMLdarkModeToggle.textContent = '🌙';
+    localStorage.setItem('darkMode', 'disabled');
+    console.log('Dark mode disabled');
+}
+
+HTMLdarkModeToggle.addEventListener('click', () => {
+    if(htmlElement.classList.contains('dark-mode')){
+        disableDarkMode();
+    } else {
+        enableDarkMode();
+    }
+});
+
+// Load dark mode preference on startup
+loadDarkModePreference();
 
 /*
 Deletion quadrant
@@ -35,14 +83,20 @@ const permissionsToRequest ={
 /*
 Code for password generator
 */
-HTMLbuttonPasswordGenerator.addEventListener('click', ()=>{//Smurf generates password and places it in input.value tag
+HTMLbuttonPasswordGenerator.addEventListener('click', ()=>{
     let len = Number(HTMLlengthPasswordGeneratedInput.value);
     let specialCharactersIncluded = HTMLincludeSpecialCharactersCheckbox.checked;
     let upperCaseIncluded = HTMLincludeUpperCaseCheckbox.checked;
     let numbersIncluded = HTMLincludeNumbersCheckbox.checked;
-    if(len <= 10 || len >100){
+
+    if(!HTMLlengthPasswordGeneratedInput.value){
+        displayError("Please enter a password length");
         HTMLlengthPasswordGeneratedInput.classList.add("error");
-        displayError("Number out of bounds");
+        return;
+    }
+    if(isNaN(len) || len < 8 || len > 100){
+        HTMLlengthPasswordGeneratedInput.classList.add("error");
+        displayError("Password length must be between 8 and 100");
     } else{
         HTMLinputPassword.value = generatePassword(len, specialCharactersIncluded, numbersIncluded, upperCaseIncluded);
         HTMLinputPassword.type = "password";
@@ -59,29 +113,202 @@ clickableHTML.forEach(item =>{
 
 
 /*
+Recent passwords tracking
+*/
+function addToRecentPasswords(passwordName){
+    // Remove if already in list
+    recentPasswords = recentPasswords.filter(p => p !== passwordName);
+    // Add to beginning
+    recentPasswords.unshift(passwordName);
+    // Keep only MAX_RECENT items
+    if(recentPasswords.length > MAX_RECENT){
+        recentPasswords.pop();
+    }
+    // Save to localStorage
+    localStorage.setItem('recentPasswords', JSON.stringify(recentPasswords));
+}
+
+function loadRecentPasswords(){
+    const saved = localStorage.getItem('recentPasswords');
+    if(saved){
+        try {
+            recentPasswords = JSON.parse(saved);
+        } catch(e){
+            recentPasswords = [];
+        }
+    }
+}
+
+// Load recent passwords on startup
+loadRecentPasswords();
+
+function displayRecentPasswords(){
+    const container = document.getElementById('recentPasswordsContainer');
+    const list = document.getElementById('recentPasswordsList');
+
+    if(recentPasswords.length === 0){
+        container.style.display = 'none';
+        return;
+    }
+
+    list.innerHTML = '';
+    recentPasswords.forEach(pwdName => {
+        const link = document.createElement('div');
+        link.style.padding = '3px 0';
+        link.style.cursor = 'pointer';
+        link.style.textDecoration = 'underline';
+        link.style.color = 'rgb(70, 100, 120)';
+        link.style.fontSize = '1.3rem';
+        link.textContent = '• ' + pwdName;
+        link.addEventListener('click', () => {
+            HTMLselectDropdown.value = pwdName;
+            HTMLpasswordGetter.click();
+        });
+        list.appendChild(link);
+    });
+
+    container.style.display = 'block';
+}
+
+/*
+Search/Filter functionality
+*/
+function filterPasswordsBySearch(searchTerm){
+    const dropdown = HTMLselectDropdown;
+    const options = dropdown.querySelectorAll('option');
+
+    if(!searchTerm){
+        // Show all options
+        options.forEach(option => {
+            option.style.display = '';
+        });
+        return;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    options.forEach(option => {
+        if(option.textContent.toLowerCase().includes(searchLower)){
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+}
+
+HTMLpasswordSearchInput.addEventListener('input', (e) => {
+    filterPasswordsBySearch(e.target.value);
+});
+
+/*
 Code for error handling
 */
-function displayError(str){//Will make a fancy window show up on the lower right corner
+function displayError(str){
     console.log(str);
+    // Show error to user via alert for now
+    alert("Error: " + str);
 }
+
+/*
+Password strength indicator
+*/
+function calculatePasswordStrength(password){
+    let strength = 0;
+
+    // Length check
+    if(password.length >= 8) strength += 1;
+    if(password.length >= 12) strength += 1;
+    if(password.length >= 16) strength += 1;
+
+    // Character variety checks
+    if(/[a-z]/.test(password)) strength += 1;
+    if(/[A-Z]/.test(password)) strength += 1;
+    if(/[0-9]/.test(password)) strength += 1;
+    if(/[^a-zA-Z0-9]/.test(password)) strength += 1;
+
+    // Return strength level and color
+    if(strength <= 2) return { level: "Weak", color: "red", percentage: 25 };
+    if(strength <= 4) return { level: "Fair", color: "orange", percentage: 50 };
+    if(strength <= 6) return { level: "Good", color: "yellow", percentage: 75 };
+    return { level: "Strong", color: "green", percentage: 100 };
+}
+
+function updatePasswordStrength(){
+    const password = HTMLinputPassword.value;
+
+    // Create strength meter if it doesn't exist
+    if(!passwordStrengthMeter){
+        const container = document.createElement("div");
+        container.style.marginTop = "10px";
+        container.style.marginBottom = "10px";
+
+        passwordStrengthMeter = document.createElement("div");
+        passwordStrengthMeter.style.width = "100%";
+        passwordStrengthMeter.style.height = "20px";
+        passwordStrengthMeter.style.backgroundColor = "#e0e0e0";
+        passwordStrengthMeter.style.borderRadius = "5px";
+        passwordStrengthMeter.style.overflow = "hidden";
+
+        const bar = document.createElement("div");
+        bar.id = "strengthBar";
+        bar.style.height = "100%";
+        bar.style.width = "0%";
+        bar.style.transition = "width 0.3s ease";
+        bar.style.backgroundColor = "gray";
+
+        passwordStrengthText = document.createElement("span");
+        passwordStrengthText.id = "strengthText";
+        passwordStrengthText.style.marginLeft = "10px";
+        passwordStrengthText.style.fontSize = "1.4rem";
+
+        passwordStrengthMeter.appendChild(bar);
+        container.appendChild(passwordStrengthMeter);
+        container.appendChild(passwordStrengthText);
+
+        HTMLinputPassword.parentNode.insertBefore(container, HTMLinputPassword.nextSibling);
+    }
+
+    if(password.length > 0){
+        const strength = calculatePasswordStrength(password);
+        const bar = document.getElementById("strengthBar");
+        bar.style.backgroundColor = strength.color;
+        bar.style.width = strength.percentage + "%";
+        passwordStrengthText.textContent = "Strength: " + strength.level;
+        passwordStrengthText.style.color = strength.color;
+    } else {
+        const bar = document.getElementById("strengthBar");
+        bar.style.width = "0%";
+        passwordStrengthText.textContent = "";
+    }
+}
+
+// Listen for password input changes
+HTMLinputPassword.addEventListener('input', updatePasswordStrength);
 
 
 //Password getter event listener
-HTMLpasswordGetter.addEventListener('click', ()=>{
+HTMLpasswordGetter.addEventListener('click', async ()=>{
     data = HTMLselectDropdown.value;
-    if(data == "-- Please select a password --"){//The drop down menu was not activated
-        console.log("Please select a password on the database");
-        return 0;
-    } else {
-        foundPassword = false;
-        passwords.forEach(item =>{
-            if(item.name == data){//for the item in the password list with the relevant name
-                revealPassword(item, HTMLonScreenData.checked, HTMLtoClipboardPassword.checked, HTMLonScreenPassword.checked)
-                foundPassword = true;
-            }
-        })
-        if(! foundPassword) console.log("ERROR, password not found");
+    if(data == "-- Please select a password --"){
+        displayError("Please select a password from the dropdown");
+        return;
     }
+
+    foundPassword = false;
+    for(let item of passwords){
+        if(item.name == data){
+            try {
+                await revealPassword(item, HTMLonScreenData.checked, HTMLtoClipboardPassword.checked, HTMLonScreenPassword.checked)
+                addToRecentPasswords(item.name);
+                foundPassword = true;
+                break;
+            } catch(err) {
+                displayError("Failed to access password: " + err.message);
+                foundPassword = true;
+                break;
+            }
+        }
+    }
+    if(!foundPassword) displayError("Password not found in database");
 })
 
 
@@ -89,20 +316,27 @@ HTMLpasswordGetter.addEventListener('click', ()=>{
 /*
 This code reveals the password on the third window
 */
-function revealPassword(password, onScreenData = true, copyToClipboard = true, onScreenPassword = true){
+async function revealPassword(password, onScreenData = true, copyToClipboard = true, onScreenPassword = true){
     try{
-        data = password.data;
-        str = "<h3>Your current password has been successfully accessed</h3>"
+        const data = await password.data();
+        let str = "<h3>Your current password has been successfully accessed</h3>"
         if(onScreenData) str += `<p>Service name: <span class="out">${password.name}</span></p><p>Username: <span class="out">${data[1]}</span></p><p>email: <span class="out">${data[0]}</span></p><p>Description: <span class="out">${data[3]}</span></p>`;
-        if(onScreenPassword || true) str += `<p>Password: <span class="out password">${data[2]}</span></p>`
+        if(onScreenPassword) str += `<p>Password: <span class="out password">${data[2]}</span></p>`
+
         if(copyToClipboard){
-            str += "<p>Copy to clipboard currently not supported</p>"
-            //Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(data[2]);
+                str += "<p style='color: green;'>Password copied to clipboard!</p>";
+            } catch(err) {
+                str += "<p style='color: red;'>Failed to copy password to clipboard</p>";
+            }
         }
+
         HTMLpasswordDump.innerHTML = str;
         HTMLpasswordDump.classList.remove("hdn");
-    } catch{
-        console.log("Not able to password");
+    } catch(err){
+        console.error('Error revealing password:', err);
+        displayError("Could not decrypt password: " + err.message);
     }
 }
 
@@ -119,38 +353,98 @@ HTMLpasswordSee.addEventListener('click', () =>{
     }
 })
 
-HTMLpasswordIntroduceDatabase.addEventListener('click', ()=>{
-    let user = HTMLinputUser.value;
-    let email = HTMLinputEmail.value;
-    let inputName = HTMLinputName.value;
-    let info = HTMLinputInfo.value;
-    let pass = HTMLinputPassword.value;/*
-    console.log("user = ", user);
-    console.log("email = ", email);
-    console.log("description = ", info);
-    console.log("pass = ", pass);
-    console.log("service = ", inputName);*/
-    createPassword(inputName, [email, user, pass, info]);
+HTMLpasswordIntroduceDatabase.addEventListener('click', async ()=>{
+    let user = HTMLinputUser.value.trim();
+    let email = HTMLinputEmail.value.trim();
+    let inputName = HTMLinputName.value.trim();
+    let info = HTMLinputInfo.value.trim();
+    let pass = HTMLinputPassword.value;
+
+    // Validate inputs
+    if(!inputName){
+        displayError("Service name is required");
+        return;
+    }
+    if(!pass){
+        displayError("Password is required");
+        return;
+    }
+    if(!user && !email){
+        displayError("Username or email is required");
+        return;
+    }
+
+    try {
+        await createPassword(inputName, [email, user, pass, info]);
+        // Clear form on success
+        HTMLinputUser.value = "";
+        HTMLinputEmail.value = "";
+        HTMLinputName.value = "";
+        HTMLinputInfo.value = "";
+        HTMLinputPassword.value = "";
+        alert("Password saved successfully!");
+    } catch(err) {
+        displayError("Error saving password: " + err.message);
+    }
 })
 
 
 
 /*
-fourth quadrant
+Settings quadrant
 */
-HTMLclearPasswordButtons.addEventListener('click', () => {
-    let del = HTMLpasswordDeletionList.value;
-    if(del !== "-- Please select a password --") HTMLdeleteButton.classList.toggle("hdn");
+const HTMLchangePassphraseButton = document.querySelector("#changePassphraseButton");
+const HTMLexportButton = document.querySelector("#exportButton");
+const HTMLimportButton = document.querySelector("#importButton");
+
+HTMLchangePassphraseButton.addEventListener('click', () => {
+    changePassphrase();
 })
 
-HTMLdeleteButton.addEventListener('click', ()=>{
-    let del = HTMLpasswordDeletionList.value;
-    HTMLdeleteButton.classList.toggle("hdn");
-    removePassword(del);
+HTMLexportButton.addEventListener('click', () => {
+    exportPasswords();
 })
+
+HTMLimportButton.addEventListener('click', () => {
+    importPasswords();
+})
+
+HTMLclearPasswordButtons.addEventListener('click', async () => {
+    let del = HTMLpasswordDeletionList.value;
+    if(del === "-- Please select a password --"){
+        displayError("Please select a password to delete");
+        return;
+    }
+
+    if(del === "-- All --"){
+        const confirmed = confirm("⚠️ WARNING: This will DELETE ALL passwords permanently!\n\nThis action cannot be undone. Are you sure?");
+        if(!confirmed) return;
+
+        const doubleConfirm = prompt("Type 'DELETE ALL' to confirm deletion of all passwords:");
+        if(doubleConfirm !== "DELETE ALL"){
+            alert("Deletion cancelled");
+            return;
+        }
+    } else {
+        const confirmed = confirm("Delete password for '" + del + "'?\n\nThis action cannot be undone.");
+        if(!confirmed) return;
+    }
+
+    try {
+        await removePassword(del);
+        displayPasswordDeletedMessage(del);
+    } catch(err) {
+        displayError("Error deleting password: " + err.message);
+    }
+})
+
+function displayPasswordDeletedMessage(name){
+    HTMLpasswordDump.innerHTML = "<h3 style='color: green;'>✓ Password deleted successfully!</h3><p>Password for '" + name + "' has been permanently removed.</p>";
+    HTMLpasswordDump.classList.remove("hdn");
+    HTMLpasswordDeletionList.value = "-- Please select a password --";
+}
 
 HTMLpasswordDeletionList.addEventListener('click', ()=>{
-    HTMLdeleteButton.classList.add("hdn");
     HTMLpasswordDump.classList.add("hdn");
 })
 
