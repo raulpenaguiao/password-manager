@@ -1,99 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-    	<meta charset="utf-8">
-    	<meta name="description" content="Web app for password manager">
-    	<meta name="keywords" content="password, local">
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="Web app for password manager">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Passworded</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bangers&display=swap" rel="stylesheet">
+	<script type="text/javascript" src="assets/js/crypto-utils.js"></script>
+	<link rel="stylesheet" href="assets/css/reset.css">
+	<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+	<header class="app-header">
+		<h1 class="app-title">Passworded</h1>
+		<button id="darkModeToggle" class="dark-toggle" title="Toggle dark mode">🌙</button>
+	</header>
 
-		<title>Passworded</title>
-		<!-- viewport-->
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<!-- external fonts -->
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"> 
-		<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
+	<main class="app-main">
+		<!-- Generate new password -->
+		<section class="card" id="panel-generate">
+			<h2>Generate New Password</h2>
 
+			<div class="form-group">
+				<label for="inputName">Webservice</label>
+				<input autocomplete="off" type="text" id="inputName" placeholder="website/service">
+			</div>
+			<div class="form-group">
+				<label for="inputUser">Username</label>
+				<input autocomplete="off" type="text" id="inputUser" placeholder="Username">
+			</div>
+			<div class="form-group">
+				<label for="inputEmail">Email</label>
+				<input autocomplete="off" type="text" id="inputEmail" placeholder="your@email.com">
+			</div>
+			<div class="form-group">
+				<label for="inputInfo">Notes</label>
+				<textarea id="inputInfo" autocomplete="off" placeholder="Extra information..."></textarea>
+			</div>
 
-		<!-- Secure encryption using native Web Crypto API -->
-		<script type="text/javascript" src="assets/js/crypto-utils.js"></script>
+			<div class="divider"></div>
 
-		<!-- external CSS styles -->
-		<link rel="stylesheet" href="assets/css/reset.css">
-		<link rel="stylesheet" href="assets/css/style.css">
-	</head>
-	<body>
-		<header>
-			<h1>Password Manager</h1>
-			<button id="darkModeToggle" style="position: absolute; top: 20px; right: 20px; padding: 10px 15px; font-size: 2rem; background-color: rgba(255,255,255,0.2); border: 2px solid #999; border-radius: 50%; width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">🌙</button>
-		</header>
-		<div class="cf strip" >
-			<div class="col-1-4 in-col">
-				<h2>Generate new password</h2>
-				<ul>
-					<li>Webservice: <input class="text-input" autocomplete="off" type="text" id="inputName" placeholder="website/service"></li>
-					<li>Username: <input class="text-input" autocomplete="off" type="text" id="inputUser" placeholder="Username"></li>
-					<li>Email: <input  class="text-input" autocomplete="off" type="text" id="inputEmail" placeholder="your.mail@mailbox.com"></li>
-					<li>Extra text information:</li>
-					<textarea type="text" id="inputInfo" autocomplete="off" placeholder="Use this only on tuesdays"></textarea>
-				</ul>
-				<div>
-					<ul>
-						<li ><input class="text-input" type="text" autocomplete="off" name="lengthPassword" maxlength="2"  min="0" max="9999" step="1" placeholder="16" pattern="[0-9]{4}" id="lengthPasswordGeneratedInput">Length</li>
-						<li class="clickable"><input type="checkbox" id="includeUpperCaseCheckbox">Include uppercase</li>
-						<li class="clickable"><input type="checkbox" id="includeNumbersCheckbox">Include numbers</li>
-						<li class="clickable"><input type="checkbox" id="includeSpecialCharactersCheckbox">Include special characters</li>
-					</ul> 
-					<button id="buttonPasswordGenerator" class="btnWide half-wide">Generate random password</button><p class="text-input password-see" id="passwordSee">𓁻</p><input  class="text-input" type="password" id="inputPassword" placeholder="p4s$w0rD">
-					<button id="passwordIntroduceDatabase" class="btnWide wide">Introduce password in local database</button>
+			<div class="form-group">
+				<label for="lengthPasswordGeneratedInput">Length</label>
+				<input type="text" autocomplete="off" id="lengthPasswordGeneratedInput" maxlength="3" value="16" pattern="[0-9]+">
+			</div>
+
+			<div class="checkbox-group">
+				<div class="clickable checkbox-item">
+					<input type="checkbox" id="includeUpperCaseCheckbox">
+					<span>Uppercase letters</span>
+				</div>
+				<div class="clickable checkbox-item">
+					<input type="checkbox" id="includeNumbersCheckbox">
+					<span>Numbers</span>
+				</div>
+				<div class="clickable checkbox-item">
+					<input type="checkbox" id="includeSpecialCharactersCheckbox">
+					<span>Special characters</span>
 				</div>
 			</div>
-			<div class="col-1-4 in-col">
-				<h2>Access database</h2>
+
+			<div class="password-controls">
+				<button id="buttonPasswordGenerator" class="btn btn-secondary">Generate password</button>
+				<div class="password-input-row">
+					<button class="btn-icon" id="passwordSee" title="Show/hide password">👁</button>
+					<input type="password" id="inputPassword" placeholder="p4s$w0rD">
+				</div>
+			</div>
+
+			<button id="passwordIntroduceDatabase" class="btn btn-primary btn-full">Save to Database</button>
+		</section>
+
+		<div class="right-column">
+			<!-- Access database -->
+			<section class="card" id="panel-access">
+				<h2>Access Database</h2>
+
 				<p id="recentPasswordsContainer" style="display: none; margin-bottom: 15px;">
-					<strong style="font-size: 1.4rem;">Recently Used:</strong>
-					<div id="recentPasswordsList" style="margin-top: 5px;"></div>
+					<strong>Recently Used:</strong>
+					<div id="recentPasswordsList"></div>
 				</p>
-				<input type="text" id="passwordSearchInput" class="text-input" placeholder="Search passwords..." style="width: 100%; margin-bottom: 10px;">
-				<select id="selectOldPasswords">
-				</select>
-				<p class="clickable"><input type="checkbox" id="toClipboardPassword">Copy password to clipboard</li></p>
-				<p class="clickable"><input type="checkbox" id="onScreenData">Show data on screen</li></p>
-				<p class="clickable"><input type="checkbox" id="onScreenPassword">Show password on screen</li></p>
-				<button id="passwordGetter" class="btnWide wide">Get password</button>
-			</div>
-			<div class="col-1-4">
-				<div id="passwordDump"></div>
-			</div>
-			<div class="col-1-4 in-col">
+
+				<input type="text" id="passwordSearchInput" placeholder="Search passwords...">
+				<select id="selectOldPasswords"></select>
+
+				<div class="options-group">
+					<div class="clickable checkbox-item">
+						<input type="checkbox" id="toClipboardPassword">
+						<span>Copy to clipboard</span>
+					</div>
+					<div class="clickable checkbox-item">
+						<input type="checkbox" id="onScreenData">
+						<span>Show data on screen</span>
+					</div>
+					<div class="clickable checkbox-item">
+						<input type="checkbox" id="onScreenPassword">
+						<span>Show password on screen</span>
+					</div>
+				</div>
+
+				<button id="passwordGetter" class="btn btn-primary btn-full">Get Password</button>
+				<button id="editPasswordButton" class="btn btn-secondary btn-full">✏️ Edit Password</button>
+			</section>
+
+			<!-- Settings -->
+			<section class="card" id="panel-settings">
 				<h2>Settings</h2>
-				<p><button class="btnWide wide" id="changePassphraseButton">Change Passphrase</button></p>
-				<p><button class="btnWide wide" id="exportButton">Export Passwords</button></p>
-				<p><button class="btnWide wide" id="importButton">Import Passwords</button></p>
-				<p style="margin-top: 30px;"><strong>Delete a password:</strong></p>
-				<select id="selectOldPasswordsClear">
-				</select>
-				<p><button class="danger" id="clearPasswordButton">Delete Password</button></p>
+
+				<div class="settings-actions">
+					<button id="changePassphraseButton" class="btn btn-secondary btn-full">Change Passphrase</button>
+					<button id="exportButton" class="btn btn-secondary btn-full">Export Passwords</button>
+					<button id="importButton" class="btn btn-secondary btn-full">Import Passwords</button>
+				</div>
+
+				<div class="danger-zone">
+					<p class="danger-label">Delete a password</p>
+					<select id="selectOldPasswordsClear"></select>
+					<button id="clearPasswordButton" class="btn btn-danger btn-full">Delete Password</button>
+				</div>
+
+				<div class="danger-zone" style="margin-top: 16px;">
+					<p class="danger-label">Forgot passphrase</p>
+					<p class="danger-description">If you have forgotten your passphrase, your passwords cannot be recovered. You can reset the database to start fresh.</p>
+					<button id="resetDatabaseButton" class="btn btn-danger btn-full">Reset Database</button>
+				</div>
+			</section>
+		</div>
+	</main>
+
+	<!-- Password output -->
+	<div class="output-area">
+		<div id="passwordDump"></div>
+	</div>
+
+	<!-- First visit overlay -->
+	<div id="firstVisit" class="overlay">
+		<div class="overlay-card">
+			<h1 class="overlay-title">Welcome to <span class="emph">Passworded</span></h1>
+			<h3>Create your passphrase</h3>
+			<p>This is the only password you need to remember. Make it strong.</p>
+			<input id="passphraseCreatorInput" autocomplete="off" class="overlay-input" placeholder="CorrectHorseBatteryStaple">
+			<button id="passphraseCreatorButton" class="btn btn-primary btn-full btn-large">Create passphrase</button>
+		</div>
+	</div>
+
+	<!-- Passphrase check overlay -->
+	<div id="password-ask" class="overlay hdn">
+		<div class="overlay-card">
+			<h3>Enter your passphrase</h3>
+			<p>Your session has expired. Please re-enter your passphrase.</p>
+			<input id="passphraseCheckerInput" autocomplete="off" class="overlay-input" placeholder="CorrectHorseBatteryStaple">
+			<button id="passphraseCheckerButton" class="btn btn-primary btn-full btn-large">Unlock</button>
+		</div>
+	</div>
+
+	<!-- Custom modal (replaces alert/confirm/prompt) -->
+	<div id="modal-overlay" class="modal-overlay">
+		<div class="modal-box">
+			<p id="modal-message" class="modal-message"></p>
+			<input id="modal-input" type="text" class="overlay-input modal-input-field" style="display:none">
+			<div class="modal-buttons">
+				<button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+				<button id="modal-ok-btn" class="btn btn-primary">OK</button>
 			</div>
 		</div>
-		<div id="firstVisit" class="firstVisit"><!--This part is to set the passphrase for the first time-->
-			<h1>Welcome to your <span class="emph">Passworded</span> manager</h1>
-			<section class="inp">
-				<h3>First, create a passphrase.</h3>
-				<h5>Ideally, this is the only password that you will be remembering. Make it strong.</h5>
-				<input id="passphraseCreatorInput" autocomplete="off" class="wide main inputData" placeholder="CorrectHourseBatteryStaple">
-				<button id="passphraseCreatorButton" class="btnWide main wide">Create passphrase</button>
-			</section>
-		</div>
-		<div id="password-ask" class="firstVisit hdn"><!--This part is to ask for the passphrase -->
-			<section class="inp">
-				<h3>What is your passphrase?</h3>
-				<input id="passphraseCheckerInput" autocomplete="off" class="wide main inputData" placeholder="CorrectHourseBatteryStaple">
-				<button id="passphraseCheckerButton" class="btnWide main wide">Check passphrase</button>
-			</section>
-		</div>
-		<script type="text/javascript" src="assets/js/page.js"></script>
-		<script type="text/javascript" src="assets/js/main.js"></script>
-		<script type="text/javascript" src="assets/js/generator.js"></script>
-	</body>
+	</div>
+
+	<script type="text/javascript" src="assets/js/modal.js"></script>
+	<script type="text/javascript" src="assets/js/page.js"></script>
+	<script type="text/javascript" src="assets/js/main.js"></script>
+	<script type="text/javascript" src="assets/js/generator.js"></script>
+</body>
 </html>

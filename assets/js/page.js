@@ -105,7 +105,8 @@ HTMLbuttonPasswordGenerator.addEventListener('click', ()=>{
 })
 
 clickableHTML.forEach(item =>{
-    item.addEventListener('click', ()=>{
+    item.addEventListener('click', (e)=>{
+        if(e.target === item.children[0]) return;
         item.children[0].checked = !item.children[0].checked;
     })
 })
@@ -204,8 +205,7 @@ Code for error handling
 */
 function displayError(str){
     console.log(str);
-    // Show error to user via alert for now
-    alert("Error: " + str);
+    showAlert("Error: " + str);
 }
 
 /*
@@ -374,6 +374,12 @@ HTMLpasswordIntroduceDatabase.addEventListener('click', async ()=>{
         return;
     }
 
+    if (localStorage.getItem("pass" + inputName) !== null) {
+        const confirmed = await showConfirm(`An entry for "${inputName}" already exists.\n\nDo you want to overwrite it?`);
+        if (!confirmed) return;
+        localStorage.removeItem("pass" + inputName);
+    }
+
     try {
         await createPassword(inputName, [email, user, pass, info]);
         // Clear form on success
@@ -382,7 +388,8 @@ HTMLpasswordIntroduceDatabase.addEventListener('click', async ()=>{
         HTMLinputName.value = "";
         HTMLinputInfo.value = "";
         HTMLinputPassword.value = "";
-        alert("Password saved successfully!");
+        HTMLinputPassword.type = "password";
+        await showAlert("Password saved successfully!");
     } catch(err) {
         displayError("Error saving password: " + err.message);
     }
@@ -417,17 +424,24 @@ HTMLclearPasswordButtons.addEventListener('click', async () => {
     }
 
     if(del === "-- All --"){
-        const confirmed = confirm("⚠️ WARNING: This will DELETE ALL passwords permanently!\n\nThis action cannot be undone. Are you sure?");
+        const confirmed = await showConfirm("⚠️ WARNING: This will DELETE ALL passwords permanently!\n\nThis action cannot be undone. Are you sure?");
         if(!confirmed) return;
 
-        const doubleConfirm = prompt("Type 'DELETE ALL' to confirm deletion of all passwords:");
+        const doubleConfirm = await showPrompt("Type 'DELETE ALL' to confirm deletion of all passwords:");
         if(doubleConfirm !== "DELETE ALL"){
-            alert("Deletion cancelled");
+            await showAlert("Deletion cancelled");
             return;
         }
     } else {
-        const confirmed = confirm("Delete password for '" + del + "'?\n\nThis action cannot be undone.");
+        const confirmed = await showConfirm("Delete password for '" + del + "'?\n\nThis action cannot be undone.");
         if(!confirmed) return;
+    }
+
+    try {
+        await askSecretPassphrase();
+    } catch(err) {
+        displayError("Passphrase verification failed. Deletion cancelled.");
+        return;
     }
 
     try {
@@ -446,6 +460,50 @@ function displayPasswordDeletedMessage(name){
 
 HTMLpasswordDeletionList.addEventListener('click', ()=>{
     HTMLpasswordDump.classList.add("hdn");
+})
+
+document.querySelector("#editPasswordButton").addEventListener('click', async () => {
+    const selectedName = HTMLselectDropdown.value;
+    if (selectedName === "-- Please select a password --") {
+        displayError("Please select a password to edit");
+        return;
+    }
+
+    const password = passwords.find(p => p.name === selectedName);
+    if (!password) {
+        displayError("Password not found");
+        return;
+    }
+
+    try {
+        const data = await password.data(); // [email, user, password, text]
+        HTMLinputName.value = password.name;
+        HTMLinputEmail.value = data[0];
+        HTMLinputUser.value = data[1];
+        HTMLinputPassword.value = data[2];
+        HTMLinputPassword.type = "text";
+        HTMLinputInfo.value = data[3];
+
+        document.getElementById("panel-generate").scrollIntoView({ behavior: "smooth" });
+    } catch(err) {
+        displayError("Failed to load password for editing: " + err.message);
+    }
+})
+
+document.querySelector("#resetDatabaseButton").addEventListener('click', async () => {
+    await showAlert("If you have forgotten your passphrase, your stored passwords cannot be recovered — they are encrypted and only readable with the correct passphrase.\n\nResetting will permanently erase all passwords and let you start fresh.");
+
+    const confirmed = await showConfirm("Are you sure you want to permanently delete all passwords and reset the database?");
+    if (!confirmed) return;
+
+    const typed = await showPrompt("Type RESET to confirm:");
+    if (typed !== "RESET") {
+        await showAlert("Reset cancelled. You must type RESET exactly.");
+        return;
+    }
+
+    localStorage.clear();
+    location.reload();
 })
 
 

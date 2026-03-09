@@ -88,60 +88,42 @@ function clearSessionPassphrase() {
  * Prompts user for passphrase with retry logic
  */
 async function askSecretPassphrase() {
-    let attempts = 0;
-    const maxAttempts = 3;
-    let passphrase = null;
+    const ATTEMPT_TIMEOUT = 60 * 1000; // 1 minute
 
-    while (attempts < maxAttempts) {
-        passphrase = prompt("Please enter your passphrase:");
+    while (true) {
+        const passphrase = await showPrompt("Please enter your passphrase:", { inputType: 'password' });
 
         if (passphrase === null) {
             throw new Error("Passphrase cancelled by user");
         }
 
         if (passphrase === "") {
-            alert("Passphrase cannot be empty");
-            attempts++;
+            await showAlert("Passphrase cannot be empty. Please try again.");
             continue;
         }
 
-        // Verify passphrase
-        try {
-            const checker = localStorage.getItem("Checker");
-            if (!checker) {
-                throw new Error("No passphrase set up. Please set up a passphrase first.");
-            }
-
-            const isCorrect = await verifyPassphrase(passphrase, checker);
-
-            if (!isCorrect) {
-                attempts++;
-                if (attempts < maxAttempts) {
-                    alert("Wrong passphrase. You have " + (maxAttempts - attempts) + " attempts remaining.");
-                } else {
-                    throw new Error("Too many failed attempts");
-                }
-            } else {
-                // Cache passphrase for this session
-                sessionPassphrase = passphrase;
-                passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
-
-                // Auto-clear after timeout
-                setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
-
-                return passphrase;
-            }
-        } catch (err) {
-            attempts++;
-            if (attempts < maxAttempts) {
-                alert("Wrong passphrase. You have " + (maxAttempts - attempts) + " attempts remaining.");
-            } else {
-                throw new Error("Too many failed attempts");
-            }
+        const checker = localStorage.getItem("Checker");
+        if (!checker) {
+            throw new Error("No passphrase set up. Please set up a passphrase first.");
         }
-    }
 
-    throw new Error("Too many failed attempts");
+        let isCorrect = false;
+        try {
+            isCorrect = await verifyPassphrase(passphrase, checker);
+        } catch (err) {
+            // treat verification error as wrong passphrase
+        }
+
+        if (isCorrect) {
+            sessionPassphrase = passphrase;
+            passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
+            setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
+            return passphrase;
+        }
+
+        await showAlert("Wrong passphrase. Please wait 1 minute before trying again.");
+        await new Promise(resolve => setTimeout(resolve, ATTEMPT_TIMEOUT));
+    }
 }
 
 /**
@@ -249,27 +231,27 @@ async function createPassphrase() {
 
     // Validate passphrase
     if (!passphrase || passphrase.length < 5) {
-        alert("Passphrase must be at least 5 characters long");
+        await showAlert("Passphrase must be at least 5 characters long");
         return;
     }
 
     // Warn if passphrase is weak
     if (passphrase.length < 12) {
-        const isConfirmed = confirm("Your passphrase is relatively short. Are you sure you want to use it?\n\nWe recommend at least 12 characters for better security.");
+        const isConfirmed = await showConfirm("Your passphrase is relatively short. Are you sure you want to use it?\n\nWe recommend at least 12 characters for better security.");
         if (!isConfirmed) {
             return;
         }
     }
 
     // Confirm passphrase
-    let confirmPass = prompt("Please confirm your passphrase:");
+    let confirmPass = await showPrompt("Please confirm your passphrase:", { inputType: 'password' });
     if (confirmPass === null) {
-        alert("Passphrase creation cancelled");
+        await showAlert("Passphrase creation cancelled");
         return;
     }
 
     if (confirmPass !== passphrase) {
-        alert("Passphrases do not match. Please try again.");
+        await showAlert("Passphrases do not match. Please try again.");
         passphraseCreatorInputHTML.value = "";
         return;
     }
@@ -287,9 +269,9 @@ async function createPassphrase() {
         passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
         setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
 
-        alert("Passphrase created successfully!");
+        await showAlert("Passphrase created successfully!");
     } catch (err) {
-        alert("Error creating passphrase: " + err.message);
+        await showAlert("Error creating passphrase: " + err.message);
     }
 }
 
@@ -302,26 +284,26 @@ async function changePassphrase() {
         const currentPass = await getOrAskPassphrase();
 
         // Get new passphrase
-        let newPass = prompt("Enter your new passphrase:");
+        let newPass = await showPrompt("Enter your new passphrase:", { inputType: 'password' });
         if (newPass === null) {
-            alert("Passphrase change cancelled");
+            await showAlert("Passphrase change cancelled");
             return;
         }
 
         if (!newPass || newPass.length < 5) {
-            alert("New passphrase must be at least 5 characters long");
+            await showAlert("New passphrase must be at least 5 characters long");
             return;
         }
 
         // Confirm new passphrase
-        let confirmNewPass = prompt("Confirm your new passphrase:");
+        let confirmNewPass = await showPrompt("Confirm your new passphrase:", { inputType: 'password' });
         if (confirmNewPass === null) {
-            alert("Passphrase change cancelled");
+            await showAlert("Passphrase change cancelled");
             return;
         }
 
         if (confirmNewPass !== newPass) {
-            alert("New passphrases do not match. Please try again.");
+            await showAlert("New passphrases do not match. Please try again.");
             return;
         }
 
@@ -375,10 +357,10 @@ async function changePassphrase() {
         passphraseTimeout = Date.now() + PASSPHRASE_TIMEOUT;
         setTimeout(clearSessionPassphrase, PASSPHRASE_TIMEOUT);
 
-        alert("Passphrase changed successfully!");
+        await showAlert("Passphrase changed successfully!");
         passwords = await updatePasswordsAndDOM();
     } catch (err) {
-        alert("Error changing passphrase: " + err.message);
+        await showAlert("Error changing passphrase: " + err.message);
         console.error(err);
     }
 }
@@ -387,7 +369,7 @@ async function changePassphrase() {
  * Exports passwords to encrypted file
  */
 async function exportPasswords() {
-    if (!confirm("Export all passwords to an encrypted file?\n\nThe file will be encrypted and can only be imported with the correct passphrase.")) {
+    if (!await showConfirm("Export all passwords to an encrypted file?\n\nThe file will be encrypted and can only be imported with the correct passphrase.")) {
         return;
     }
 
@@ -425,9 +407,9 @@ async function exportPasswords() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        alert("Passwords exported successfully!");
+        await showAlert("Passwords exported successfully!");
     } catch (err) {
-        alert("Error exporting passwords: " + err.message);
+        await showAlert("Error exporting passwords: " + err.message);
         console.error(err);
     }
 }
@@ -450,9 +432,9 @@ async function importPasswords() {
                 const encryptedData = event.target.result;
 
                 // Ask for passphrase
-                const passphrase = prompt("Enter your passphrase to import passwords:");
+                const passphrase = await showPrompt("Enter your passphrase to import passwords:", { inputType: 'password' });
                 if (passphrase === null) {
-                    alert("Import cancelled");
+                    await showAlert("Import cancelled");
                     return;
                 }
 
@@ -467,8 +449,8 @@ async function importPasswords() {
 
                 // Show confirmation
                 const confirmMsg = `Import ${importData.passwordCount} password(s) from ${new Date(importData.exportDate).toLocaleDateString()}?\n\nPasswords with the same name will be overwritten.`;
-                if (!confirm(confirmMsg)) {
-                    alert("Import cancelled");
+                if (!await showConfirm(confirmMsg)) {
+                    await showAlert("Import cancelled");
                     return;
                 }
 
@@ -479,10 +461,10 @@ async function importPasswords() {
                     importedCount++;
                 }
 
-                alert(`Successfully imported ${importedCount} password(s)!`);
+                await showAlert(`Successfully imported ${importedCount} password(s)!`);
                 passwords = await updatePasswordsAndDOM();
             } catch (err) {
-                alert("Error importing passwords: " + err.message);
+                await showAlert("Error importing passwords: " + err.message);
                 console.error(err);
             }
         };

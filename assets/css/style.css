@@ -1,375 +1,522 @@
-/*
-Index
- -- Box Model Hack
- -- Clear fix hack
- - Base styles
- - Layout
- -- text
- - Additional styles
- -- lists
- -- nav list
- -- columns
- */
-
-/* CSS Variables for Light/Dark Mode */
+/* ==========================================
+   CSS Variables
+   ========================================== */
 :root {
-  --bg-gradient: linear-gradient(to right, rgb(150, 160, 50), rgb(70, 100, 120));
-  --bg-primary: seashell;
-  --text-primary: #000;
-  --text-secondary: #666;
-  --border-color: rgb(40, 30, 20);
-  --focus-color: rgb(120, 60, 200);
-  --button-bg: rgb(240, 230, 230);
-  --button-hover: rgb(150, 170, 150);
-  --input-border: #ddd;
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-light: #ede9fe;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --success: #16a34a;
 }
 
 html.dark-mode {
-  --bg-gradient: linear-gradient(to right, #1a1a1a, #2d2d2d) !important;
-  --bg-primary: #2a2a2a !important;
-  --text-primary: #e0e0e0 !important;
-  --text-secondary: #999 !important;
-  --border-color: #444 !important;
-  --focus-color: #bb86fc !important;
-  --button-bg: #3a3a3a !important;
-  --button-hover: #4a4a4a !important;
-  --input-border: #555 !important;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --accent: #a78bfa;
+  --accent-hover: #8b5cf6;
+  --accent-light: #2d1b69;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #334155;
 }
 
-/* Box Model Hack */
-* {
+/* ==========================================
+   Base
+   ========================================== */
+*, *::before, *::after {
   box-sizing: border-box;
 }
-
-/* Clear fix hack */
-.clearfix:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
-}
-
-.clear {
-clear: both;
-}
-
-
-.cf:before,
-.cf:after {
-content: "";
-display: table;
-}
-.cf:after {
-clear: both;
-}
-.cf {
-clear: both;
-*zoom: 1;
-}
-
-/******************************************
-/* BASE STYLES
-/*******************************************/
 
 html {
   font-size: 62.5%;
 }
 
 body {
-  font-family: "Source Sans Pro", Arial, Helvetica, sans-serif;
-  background: var(--bg-gradient);
-  padding-bottom: 200px;
-  color: var(--text-primary);
-  transition: color 0.3s ease, background 0.3s ease;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1.5;
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-.strip {
-  width: 100%;
-  background-color: var(--bg-primary);
-  height: 600px;
-  color: var(--text-primary);
+/* ==========================================
+   Header
+   ========================================== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--accent);
+  box-shadow: var(--shadow-md);
 }
 
-/******************************************
-/* LAYOUT
-/*******************************************/
-h1 {
-  width: fit-content;
+.app-title {
   font-family: "Bangers", cursive;
-  margin: 100px auto;
-  font-size: 6.5rem;
+  font-size: 3.2rem;
+  letter-spacing: 2px;
+  color: #fff;
 }
 
-h2, h3 {
-  text-align: center;
-  font-size: 4.4rem;
-  margin-bottom: 25px;
+.dark-toggle {
+  background: rgba(255,255,255,0.15);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-h5 {
-  font-size: 2.2rem;
+.dark-toggle:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.08);
+}
+
+/* ==========================================
+   Main Layout
+   ========================================== */
+.app-main {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  padding: 24px 32px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.output-area {
+  padding: 0 32px 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   Cards
+   ========================================== */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
   margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.emph {
-  color: rgb(120, 60, 200);
+/* ==========================================
+   Form Elements
+   ========================================== */
+.form-group {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  align-items: start;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
+.form-group label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: right;
+  padding-top: 9px;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 65px;
+}
+
+input[type="text"],
+input[type="password"],
+select,
 textarea {
   width: 100%;
-  height: 9rem;
+  padding: 8px 12px;
+  font-size: 1.4rem;
+  font-family: inherit;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-header {
-
-}
-
-.text-input {
-  float: right;
-}
-
-.col-1-4 {
-  float: left;
-  width: 25%;
-  padding: 20px;
-  border-right: 2px solid var(--border-color);
-  height: 100%;
-  line-height: 3rem;
-  font-size: 2rem;
-  color: var(--text-primary);
-}
-
-input[type="checkbox"]:checked {
-  background-color: salmon;
-}
-
-input[type="text"], input[type="password"], select, textarea {
-  padding: 5px;
-  font-size: 1.6rem;
-  border: 2px solid var(--input-border);
-  border-radius: 5px;
-  font-family: "Source Sans Pro", Arial, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  transition: border-color 0.2s ease;
-}
-
-#inputEmail {
-  padding: 0;
-}
-
-input[type="text"]::placeholder, input[type="password"]::placeholder {
-  color: var(--text-secondary);
-}
-
-input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus,
+textarea:focus {
   outline: none;
-  border: 2px solid var(--focus-color);
-  box-shadow: 0 0 5px rgba(120, 60, 200, 0.3);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 select {
-  background-color: var(--bg-primary);
   cursor: pointer;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* ==========================================
+   Checkboxes
+   ========================================== */
+.checkbox-group,
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 1.4rem;
+  user-select: none;
+}
+
+.checkbox-item:hover {
+  background: var(--accent-light);
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   Password Controls
+   ========================================== */
+.password-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.password-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-input-row input {
+  flex: 1;
+}
+
+.btn-icon {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+  color: var(--text);
+  height: 37px;
+  width: 37px;
+}
+
+.btn-icon:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
+/* ==========================================
+   Buttons
+   ========================================== */
+.btn {
+  padding: 9px 18px;
+  font-size: 1.4rem;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+}
+
+.btn-secondary {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+}
+
+.btn-full {
   width: 100%;
+  text-align: center;
 }
 
-
-.clickable:hover {
-  background-color: silver;
-  cursor: pointer;
+.btn-large {
+  padding: 13px 18px;
+  font-size: 1.6rem;
 }
 
-.clickable:hover ::selection, .clickable:hover ::-moz-selection {
-  background-color: rgba(0, 0, 0, 0);
+/* ==========================================
+   Access Panel
+   ========================================== */
+#passwordSearchInput {
+  margin-bottom: 10px;
 }
 
-.danger {
-  background-color: red;
-  font-family: "Bangers", cursive;
-  font-size: 4.5rem;
+#selectOldPasswords {
+  margin-bottom: 14px;
+}
+
+/* ==========================================
+   Settings Panel
+   ========================================== */
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.danger-zone {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.danger-label {
+  font-size: 1.2rem;
   font-weight: 700;
-  border: 5px ridge salmon;
-  cursor: pointer;
-  margin-top: 100px;
-  margin-bottom: 40px;
-  width: 100%;
+  text-transform: uppercase;
+  color: var(--danger);
+  letter-spacing: 0.5px;
 }
 
-.hdn {
-  visibility: hidden;
+.danger-description {
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
-.password-see {
-  margin: 3px;
-  margin-top: -3px;
-  display: inline-block;
-  width: fit-content;
-  border: solid 2px black;
-  cursor: pointer;
-  background-color: antiquewhite;
-  height: 3rem;
+/* ==========================================
+   Password Output
+   ========================================== */
+#passwordDump:not(:empty) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  box-shadow: var(--shadow);
+  font-size: 1.5rem;
+  line-height: 1.8;
 }
 
-.password-see:hover {
-  background-color: bisque;
+#passwordDump h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--success);
 }
 
-
-/*
-Third quadrand
-*/
+#passwordDump p {
+  margin-bottom: 6px;
+}
 
 .out {
-  float: right;
-  background-color: blanchedalmond;
-  padding: 5px 10px;
-  border-radius: 3px;
-  color: #000;
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 1.4rem;
 }
 
-html.dark-mode .out {
-  background-color: #444;
-  color: #e0e0e0;
-}
-
-.password {
-  display: block;
-  width: 100%;
-  background-color: rgb(150, 160, 50);
-  padding: 10px;
-  border-radius: 3px;
+.out.password {
+  font-family: monospace;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
   word-break: break-all;
+  display: block;
+  margin-top: 4px;
+  padding: 8px 12px;
 }
 
-html.dark-mode .password {
-  background-color: #3a3a3a;
-  color: #e0e0e0;
+/* ==========================================
+   Overlay (First Visit / Passphrase)
+   ========================================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
 }
 
-
-/*
-first visit
-*/
-
-.firstVisit {
-  position: absolute;
-  top:0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: rgba(180, 160, 50, 0.965);
-  transition: background-color 0.3s ease;
+.overlay-card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 48px;
+  max-width: 540px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  animation: slideIn 0.3s ease;
 }
 
-html.dark-mode .firstVisit {
-  background-color: rgba(42, 42, 42, 0.95);
+.overlay-title {
+  font-family: "Bangers", cursive;
+  font-size: 3.8rem;
+  margin-bottom: 16px;
+  text-align: center;
+  color: var(--text);
 }
 
-.inp {
-  background-color: rgba(180, 160, 50, 0.95);
-  width: 70%;
-  margin: 100px auto;
-  min-height: 30rem;
-  border: 3px solid rgb(120, 60, 200);
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  animation: slideIn 0.5s ease;
-  color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+.overlay-card h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+  color: var(--text);
 }
 
-html.dark-mode .inp {
-  background-color: rgba(42, 42, 42, 0.95);
-  border-color: #bb86fc;
+.overlay-card p {
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  margin-bottom: 24px;
+  text-align: center;
+  line-height: 1.6;
 }
 
-.inputData {
-  margin-bottom: 5px;
-}
-
-
-.main {
-  font-size: 3.4rem;
-  height: 6rem;
-  padding: 0 20px;
-}
-
-.btnWide, .inputData  {
-  border-radius: 10px;
-  border: 0;
-  background-color: var(--button-bg);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-primary);
-}
-
-.inputData:hover,.btnWide:hover {
-  background-color: var(--button-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btnWide:active {
-  border: 5px ridge rgb(120, 140, 140);
-  transform: translateY(0);
-}
-
-.danger {
-  transition: all 0.2s ease;
-}
-
-.danger:hover {
-  background-color: darkred;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.danger:active {
-  transform: translateY(0);
-}
-
-.half-wide{
-  width: 50%;
-}
-
-.wide{
+.overlay-input {
   width: 100%;
+  padding: 13px 16px;
+  font-size: 1.6rem;
+  font-family: inherit;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: 16px;
+  display: block;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.overlay-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
 
-/*
-Error box
-*/
+/* ==========================================
+   Utility
+   ========================================== */
+.hdn {
+  display: none;
+}
+
+.emph {
+  color: var(--accent);
+}
 
 .error {
-  border: 3px solid red;
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
 }
 
 .success {
-  border: 2px solid green;
-  background-color: rgba(144, 238, 144, 0.2);
+  border-color: var(--success) !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12) !important;
 }
 
-/* Utility classes */
-.mt-2 { margin-top: 20px; }
-.mb-2 { margin-bottom: 20px; }
-.mt-1 { margin-top: 10px; }
-.mb-1 { margin-bottom: 10px; }
-
-/* Text utilities */
-.text-center { text-align: center; }
-.text-small { font-size: 1.2rem; }
-.text-muted { color: #666; }
-
-/* Animations */
+/* ==========================================
+   Animations
+   ========================================== */
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
@@ -377,54 +524,78 @@ Error box
   }
 }
 
-.animate-in {
-  animation: slideIn 0.3s ease;
+/* ==========================================
+   Custom Modal
+   ========================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
 }
 
-/* Dark mode button styling */
-#darkModeToggle {
-  background-color: rgba(255,255,255,0.2) !important;
-  border: 2px solid #999 !important;
-  transition: all 0.3s ease !important;
+.modal-box {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  animation: slideIn 0.2s ease;
 }
 
-html.dark-mode #darkModeToggle {
-  background-color: rgba(0,0,0,0.3) !important;
-  border: 2px solid #666 !important;
+.modal-message {
+  font-size: 1.5rem;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 20px;
+  white-space: pre-line;
 }
 
-#darkModeToggle:hover {
-  background-color: rgba(255,255,255,0.3) !important;
-  transform: scale(1.1);
+.modal-input-field {
+  margin-bottom: 16px;
 }
 
-html.dark-mode #darkModeToggle:hover {
-  background-color: rgba(0,0,0,0.4) !important;
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
-/* Dark mode danger button styling */
-html.dark-mode .danger {
-  background-color: #8b0000 !important;
-  color: #e0e0e0;
-}
-
-html.dark-mode .danger:hover {
-  background-color: #a00000 !important;
-}
-
-/******************************************
-/* ADDITIONAL STYLES
-/*******************************************/
-
-
-
-@media (max-width:1500px) {
-  .col-1-4{
-    width: 50%;
-    height: 50%;
-    border-bottom: 2px solid rgb(40, 30, 20);
+/* ==========================================
+   Responsive
+   ========================================== */
+@media (max-width: 960px) {
+  .app-main {
+    grid-template-columns: 1fr;
+    padding: 16px;
   }
-  .strip {
-    height: 1200px;
+
+  .output-area {
+    padding: 0 16px 32px;
+  }
+}
+
+@media (max-width: 500px) {
+  .app-header {
+    padding: 14px 16px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .form-group {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group label {
+    text-align: left;
+    padding-top: 0;
   }
 }
